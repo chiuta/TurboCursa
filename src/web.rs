@@ -132,12 +132,16 @@ static GARAGE_DIRTY: AtomicU32 = AtomicU32::new(0);
 /// Garage text in the scratch buffer (`n` bytes); returns the coins.
 #[no_mangle]
 pub extern "C" fn garage_load(n: u32) -> u32 {
-    let mut guard = APP.lock().unwrap();
+    let mut guard = APP
+        .lock()
+        .unwrap_or_else(std::sync::PoisonError::into_inner);
     let a = guard.as_mut().expect("init first");
     let n = (n as usize).min(a.save_buf.len());
     let g = crate::garage::Garage::decode(&String::from_utf8_lossy(&a.save_buf[..n]));
     g.apply();
-    *GARAGE.lock().unwrap() = g;
+    *GARAGE
+        .lock()
+        .unwrap_or_else(std::sync::PoisonError::into_inner) = g;
     g.coins
 }
 
@@ -147,8 +151,13 @@ pub extern "C" fn garage_save() -> u32 {
     if GARAGE_DIRTY.swap(0, Ordering::Relaxed) == 0 {
         return 0;
     }
-    let txt = GARAGE.lock().unwrap().encode();
-    let mut guard = APP.lock().unwrap();
+    let txt = GARAGE
+        .lock()
+        .unwrap_or_else(std::sync::PoisonError::into_inner)
+        .encode();
+    let mut guard = APP
+        .lock()
+        .unwrap_or_else(std::sync::PoisonError::into_inner);
     let a = guard.as_mut().expect("init first");
     a.save_buf = txt.into_bytes();
     a.save_buf.len() as u32
@@ -157,11 +166,15 @@ pub extern "C" fn garage_save() -> u32 {
 /// Buys the next level of upgrade `i` (0 engine, 1 gearbox, 2 tyres, 3 turbo): 1 when bought.
 #[no_mangle]
 pub extern "C" fn garage_buy(i: u32) -> u32 {
-    let mut g = *GARAGE.lock().unwrap();
+    let mut g = *GARAGE
+        .lock()
+        .unwrap_or_else(std::sync::PoisonError::into_inner);
     let ok = g.buy(i as usize);
     if ok {
         g.apply();
-        *GARAGE.lock().unwrap() = g;
+        *GARAGE
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner) = g;
         GARAGE_DIRTY.store(1, Ordering::Relaxed);
     }
     ok as u32
@@ -170,7 +183,9 @@ pub extern "C" fn garage_buy(i: u32) -> u32 {
 /// `what`: 0 coins, 1..=4 level of upgrade 0..3, 5..=8 price of the next level (0 = maxed).
 #[no_mangle]
 pub extern "C" fn garage_info(what: u32) -> u32 {
-    let g = *GARAGE.lock().unwrap();
+    let g = *GARAGE
+        .lock()
+        .unwrap_or_else(std::sync::PoisonError::into_inner);
     match what {
         0 => g.coins,
         1..=4 => g.lv[what as usize - 1] as u32,
@@ -244,7 +259,9 @@ pub extern "C" fn set_mph(on: u32) {
 /// Secret paint code in the scratch buffer (`n` bytes): returns the paint job (1..) or 0.
 #[no_mangle]
 pub extern "C" fn secret_load(n: u32) -> u32 {
-    let mut guard = APP.lock().unwrap();
+    let mut guard = APP
+        .lock()
+        .unwrap_or_else(std::sync::PoisonError::into_inner);
     let a = guard.as_mut().expect("init first");
     let n = (n as usize).min(a.save_buf.len());
     let txt = String::from_utf8_lossy(&a.save_buf[..n]).to_string();
@@ -271,11 +288,17 @@ pub extern "C" fn daily_seed(day: u32) -> u32 {
 /// scratch buffer; returns its length, 0 when there is none.
 #[no_mangle]
 pub extern "C" fn daily_code() -> u32 {
-    let txt = std::mem::take(&mut *DAILY_CODE.lock().unwrap());
+    let txt = std::mem::take(
+        &mut *DAILY_CODE
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner),
+    );
     if txt.is_empty() {
         return 0;
     }
-    let mut guard = APP.lock().unwrap();
+    let mut guard = APP
+        .lock()
+        .unwrap_or_else(std::sync::PoisonError::into_inner);
     let a = guard.as_mut().expect("init first");
     a.save_buf = txt.into_bytes();
     a.save_buf.len() as u32
@@ -292,28 +315,38 @@ static STAGE_NEXT: AtomicU32 = AtomicU32::new(0);
 /// (seed from `code_seed`, any single-player mode) plays exactly that stage.
 #[no_mangle]
 pub extern "C" fn code_load(n: u32) -> u32 {
-    let mut guard = APP.lock().unwrap();
+    let mut guard = APP
+        .lock()
+        .unwrap_or_else(std::sync::PoisonError::into_inner);
     let a = guard.as_mut().expect("init first");
     let n = (n as usize).min(a.save_buf.len());
     let txt = String::from_utf8_lossy(&a.save_buf[..n]).to_string();
     if let Some(cc) = crate::champ::ChampCode::decode(&txt) {
         CLASS.store(cc.class as u32, Ordering::Relaxed);
         LEVEL.store(cc.level as u32, Ordering::Relaxed);
-        *STAGE.lock().unwrap() = None;
-        *CHAMP.lock().unwrap() = Some(cc);
+        *STAGE
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner) = None;
+        *CHAMP
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner) = Some(cc);
         STAGE_NEXT.store(1, Ordering::Relaxed);
         return 1;
     }
     let Some(c) = crate::share::StageCode::decode(&txt) else {
         return 0;
     };
-    *CHAMP.lock().unwrap() = None;
+    *CHAMP
+        .lock()
+        .unwrap_or_else(std::sync::PoisonError::into_inner) = None;
     CLASS.store(c.class as u32, Ordering::Relaxed);
     LEVEL.store(c.level as u32, Ordering::Relaxed);
     WX.store(c.weather as u32, Ordering::Relaxed);
     SF.store(c.surface as u32, Ordering::Relaxed);
     TIME.store(c.time as u32, Ordering::Relaxed);
-    *STAGE.lock().unwrap() = Some(c);
+    *STAGE
+        .lock()
+        .unwrap_or_else(std::sync::PoisonError::into_inner) = Some(c);
     STAGE_NEXT.store(1, Ordering::Relaxed);
     1
 }
@@ -334,34 +367,56 @@ pub extern "C" fn cfg_get(i: u32) -> u32 {
 /// Seed of the loaded stage code (0 when none).
 #[no_mangle]
 pub extern "C" fn code_seed() -> u32 {
-    if let Some(c) = *CHAMP.lock().unwrap() {
+    if let Some(c) = *CHAMP
+        .lock()
+        .unwrap_or_else(std::sync::PoisonError::into_inner)
+    {
         return c.seed;
     }
-    STAGE.lock().unwrap().map_or(0, |c| c.seed)
+    STAGE
+        .lock()
+        .unwrap_or_else(std::sync::PoisonError::into_inner)
+        .map_or(0, |c| c.seed)
 }
 
 /// Game mode of the loaded stage code.
 #[no_mangle]
 pub extern "C" fn code_mode() -> u32 {
-    if CHAMP.lock().unwrap().is_some() {
+    if CHAMP
+        .lock()
+        .unwrap_or_else(std::sync::PoisonError::into_inner)
+        .is_some()
+    {
         return 12;
     }
-    STAGE.lock().unwrap().map_or(0, |c| c.mode as u32)
+    STAGE
+        .lock()
+        .unwrap_or_else(std::sync::PoisonError::into_inner)
+        .map_or(0, |c| c.mode as u32)
 }
 
 /// The code of the stage being played or designed, as text in the scratch buffer; returns its
 /// length, 0 when the current game is not a coded stage.
 #[no_mangle]
 pub extern "C" fn code_text() -> u32 {
-    let mut guard = APP.lock().unwrap();
+    let mut guard = APP
+        .lock()
+        .unwrap_or_else(std::sync::PoisonError::into_inner);
     let a = guard.as_mut().expect("init first");
     let c = match &a.mode {
         Mode::Design(d) => Some(d.code),
-        Mode::Single(_) => *STAGE.lock().unwrap(),
+        Mode::Single(_) => *STAGE
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner),
         _ => None,
     };
     if c.is_none() {
-        if let (Mode::Rally(_), Some(cc)) = (&a.mode, *CHAMP.lock().unwrap()) {
+        if let (Mode::Rally(_), Some(cc)) = (
+            &a.mode,
+            *CHAMP
+                .lock()
+                .unwrap_or_else(std::sync::PoisonError::into_inner),
+        ) {
             a.save_buf = cc.encode().into_bytes();
             return a.save_buf.len() as u32;
         }
@@ -413,7 +468,9 @@ pub extern "C" fn set_today(day: u32) {
 }
 
 fn with_profile<R>(f: impl FnOnce(&mut Profile) -> R) -> R {
-    let mut g = PROFILE.lock().unwrap();
+    let mut g = PROFILE
+        .lock()
+        .unwrap_or_else(std::sync::PoisonError::into_inner);
     f(g.get_or_insert_with(Profile::new))
 }
 
@@ -439,13 +496,17 @@ fn apply_equipment(g: &mut Game) {
 /// Profile: load the save string the page wrote into the scratch buffer (`n` bytes).
 #[no_mangle]
 pub extern "C" fn profile_load(n: u32) -> u32 {
-    let mut guard = APP.lock().unwrap();
+    let mut guard = APP
+        .lock()
+        .unwrap_or_else(std::sync::PoisonError::into_inner);
     let a = guard.as_mut().expect("init first");
     let n = (n as usize).min(a.save_buf.len());
     let txt = String::from_utf8_lossy(&a.save_buf[..n]).to_string();
     let mut p = Profile::decode(&txt);
     p.begin_day(TODAY.load(Ordering::Relaxed));
-    *PROFILE.lock().unwrap() = Some(p);
+    *PROFILE
+        .lock()
+        .unwrap_or_else(std::sync::PoisonError::into_inner) = Some(p);
     1
 }
 
@@ -457,7 +518,9 @@ pub extern "C" fn profile_save() -> u32 {
         return 0;
     }
     let txt = with_profile(|p| p.encode());
-    let mut guard = APP.lock().unwrap();
+    let mut guard = APP
+        .lock()
+        .unwrap_or_else(std::sync::PoisonError::into_inner);
     let a = guard.as_mut().expect("init first");
     a.save_buf = txt.into_bytes();
     a.save_buf.len() as u32
@@ -467,7 +530,9 @@ pub extern "C" fn profile_save() -> u32 {
 /// single-player game of the same stage. Returns 1 when the code is valid.
 #[no_mangle]
 pub extern "C" fn ghost_load(n: u32) -> u32 {
-    let mut guard = APP.lock().unwrap();
+    let mut guard = APP
+        .lock()
+        .unwrap_or_else(std::sync::PoisonError::into_inner);
     let a = guard.as_mut().expect("init first");
     let n = (n as usize).min(a.save_buf.len());
     let txt = String::from_utf8_lossy(&a.save_buf[..n]).to_string();
@@ -476,7 +541,9 @@ pub extern "C" fn ghost_load(n: u32) -> u32 {
     if let Mode::Single(game) = &mut a.mode {
         game.set_ghost(g.clone());
     }
-    *GHOST.lock().unwrap() = g;
+    *GHOST
+        .lock()
+        .unwrap_or_else(std::sync::PoisonError::into_inner) = g;
     ok
 }
 
@@ -484,11 +551,17 @@ pub extern "C" fn ghost_load(n: u32) -> u32 {
 /// its length, 0 when there is none. The page keeps the faster of old and new in localStorage.
 #[no_mangle]
 pub extern "C" fn ghost_save() -> u32 {
-    let Some(g) = NEW_GHOST.lock().unwrap().take() else {
+    let Some(g) = NEW_GHOST
+        .lock()
+        .unwrap_or_else(std::sync::PoisonError::into_inner)
+        .take()
+    else {
         return 0;
     };
     let txt = g.encode();
-    let mut guard = APP.lock().unwrap();
+    let mut guard = APP
+        .lock()
+        .unwrap_or_else(std::sync::PoisonError::into_inner);
     let a = guard.as_mut().expect("init first");
     a.save_buf = txt.into_bytes();
     a.save_buf.len() as u32
@@ -499,7 +572,7 @@ pub extern "C" fn ghost_save() -> u32 {
 pub extern "C" fn ghost_time() -> u32 {
     GHOST
         .lock()
-        .unwrap()
+        .unwrap_or_else(std::sync::PoisonError::into_inner)
         .as_ref()
         .map_or(0, |g| (g.secs * 10.0) as u32)
 }
@@ -513,7 +586,9 @@ pub extern "C" fn badges_new() -> u32 {
         return 0;
     }
     let txt = crate::badges::names_of(mask);
-    let mut guard = APP.lock().unwrap();
+    let mut guard = APP
+        .lock()
+        .unwrap_or_else(std::sync::PoisonError::into_inner);
     let a = guard.as_mut().expect("init first");
     a.save_buf = txt.into_bytes();
     a.save_buf.len() as u32
@@ -572,7 +647,13 @@ fn new_game(seed: u64, mode: crate::game::Mode) -> Box<Game> {
     apply_equipment(&mut g);
     // a visible pack of rivals (not for the daily, the weekly or shared stage codes)
     let n = PACK_N.load(Ordering::Relaxed) as usize;
-    if n > 0 && DAILY.load(Ordering::Relaxed) == 0 && STAGE.lock().unwrap().is_none() {
+    if n > 0
+        && DAILY.load(Ordering::Relaxed) == 0
+        && STAGE
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner)
+            .is_none()
+    {
         g.set_pack(Some(crate::pack::PackCfg {
             n,
             inverted: PACK_INV.load(Ordering::Relaxed) != 0,
@@ -623,9 +704,15 @@ fn web_extras() -> crate::pick::Extras {
         pack: PACK_N.load(Ordering::Relaxed) as u8,
         inverted: PACK_INV.load(Ordering::Relaxed) != 0,
         players: PLAYERS.load(Ordering::Relaxed) as u8,
-        garage: *GARAGE.lock().unwrap(),
+        garage: *GARAGE
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner),
         web: true,
-        stock: DAILY.load(Ordering::Relaxed) != 0 || STAGE.lock().unwrap().is_some(),
+        stock: DAILY.load(Ordering::Relaxed) != 0
+            || STAGE
+                .lock()
+                .unwrap_or_else(std::sync::PoisonError::into_inner)
+                .is_some(),
     }
     .sanitized()
 }
@@ -636,7 +723,9 @@ fn apply_extras(ex: crate::pick::Extras) {
     PACK_N.store(ex.pack as u32, Ordering::Relaxed);
     PACK_INV.store(ex.inverted as u32, Ordering::Relaxed);
     PLAYERS.store(ex.players as u32, Ordering::Relaxed);
-    let mut g = GARAGE.lock().unwrap();
+    let mut g = GARAGE
+        .lock()
+        .unwrap_or_else(std::sync::PoisonError::into_inner);
     if *g != ex.garage {
         *g = ex.garage;
         g.apply();
@@ -648,7 +737,9 @@ fn apply_extras(ex: crate::pick::Extras) {
 /// Stored options (`TS1;...;p=pack;i=inverted;n=players`) in the scratch buffer (`n` bytes).
 #[no_mangle]
 pub extern "C" fn settings_load(n: u32) {
-    let mut guard = APP.lock().unwrap();
+    let mut guard = APP
+        .lock()
+        .unwrap_or_else(std::sync::PoisonError::into_inner);
     let a = guard.as_mut().expect("init first");
     let n = (n as usize).min(a.save_buf.len());
     let txt = String::from_utf8_lossy(&a.save_buf[..n]).to_string();
@@ -689,7 +780,9 @@ pub extern "C" fn settings_save() -> u32 {
         ex.inverted as u8,
         ex.players
     );
-    let mut guard = APP.lock().unwrap();
+    let mut guard = APP
+        .lock()
+        .unwrap_or_else(std::sync::PoisonError::into_inner);
     let a = guard.as_mut().expect("init first");
     a.save_buf = txt.into_bytes();
     a.save_buf.len() as u32
@@ -699,7 +792,9 @@ pub extern "C" fn settings_save() -> u32 {
 /// word, 5 daily, 6 weekly, 0 not a code.
 #[no_mangle]
 pub extern "C" fn code_kind(n: u32) -> u32 {
-    let mut guard = APP.lock().unwrap();
+    let mut guard = APP
+        .lock()
+        .unwrap_or_else(std::sync::PoisonError::into_inner);
     let a = guard.as_mut().expect("init first");
     let n = (n as usize).min(a.save_buf.len());
     let txt = String::from_utf8_lossy(&a.save_buf[..n]).to_string();
@@ -763,22 +858,43 @@ static PICK: AtomicU32 = AtomicU32::new(0);
 
 fn build(seed: u64, mode: u32) -> Mode {
     // the daily, the weekly and shared stage codes always use the stock car
-    crate::garage::set_stock(DAILY.load(Ordering::Relaxed) != 0 || STAGE.lock().unwrap().is_some());
+    crate::garage::set_stock(
+        DAILY.load(Ordering::Relaxed) != 0
+            || STAGE
+                .lock()
+                .unwrap_or_else(std::sync::PoisonError::into_inner)
+                .is_some(),
+    );
     if mode < 9 {
-        if let Some(c) = *STAGE.lock().unwrap() {
+        if let Some(c) = *STAGE
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner)
+        {
             return Mode::Single(stage_game(c));
         }
     }
     match mode {
         13.. => Mode::Design(Box::new(crate::design::DesignApp::new(
-            *STAGE.lock().unwrap(),
+            *STAGE
+                .lock()
+                .unwrap_or_else(std::sync::PoisonError::into_inner),
         ))),
         9 | 10 if PLAYERS.load(Ordering::Relaxed) >= 3 => Mode::Multi(new_multi(seed, mode == 10)),
         9 => Mode::Versus(new_versus(seed, true)),
         10 => Mode::Versus(new_versus(seed, false)),
         11 => Mode::Career(Box::new(CareerApp::new(seed, None))),
-        12.. if CHAMP.lock().unwrap().is_some() => {
-            Mode::Rally(Box::new(CHAMP.lock().unwrap().unwrap().app()))
+        12.. if CHAMP
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner)
+            .is_some() =>
+        {
+            Mode::Rally(Box::new(
+                CHAMP
+                    .lock()
+                    .unwrap_or_else(std::sync::PoisonError::into_inner)
+                    .unwrap()
+                    .app(),
+            ))
         }
         12.. => Mode::Rally(Box::new(crate::rally::RallyApp::new(
             seed,
@@ -808,9 +924,12 @@ fn pick_screen(seed: u64, session: f32) -> Mode {
 pub extern "C" fn init(seed: u32, mode: u32) {
     let seed = seed as u64;
     if STAGE_NEXT.swap(0, Ordering::Relaxed) == 0 {
-        *STAGE.lock().unwrap() = None;
+        *STAGE
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner) = None;
     }
-    *APP.lock().unwrap() = Some(App {
+    *APP.lock()
+        .unwrap_or_else(std::sync::PoisonError::into_inner) = Some(App {
         mode: if PICK.load(Ordering::Relaxed) == 1 && mode != 11 && mode != 13 {
             pick_screen(seed, 0.0)
         } else {
@@ -850,7 +969,11 @@ fn decode(bits: u32) -> Input {
 /// bits 8-12: the same for P2 (versus mode); bit 13: restart.
 #[no_mangle]
 pub extern "C" fn set_input(bits: u32) {
-    if let Some(a) = APP.lock().unwrap().as_mut() {
+    if let Some(a) = APP
+        .lock()
+        .unwrap_or_else(std::sync::PoisonError::into_inner)
+        .as_mut()
+    {
         a.inp = [decode(bits), decode(bits >> 8)];
         a.restart = bits & (32 | 8192) != 0;
         a.back = bits & 64 != 0;
@@ -860,7 +983,9 @@ pub extern "C" fn set_input(bits: u32) {
 
 #[no_mangle]
 pub extern "C" fn frame(dt: f32) -> *const u8 {
-    let mut guard = APP.lock().unwrap();
+    let mut guard = APP
+        .lock()
+        .unwrap_or_else(std::sync::PoisonError::into_inner);
     let a = guard.as_mut().expect("init first");
     let inp = a.inp;
     let mut next: Option<Mode> = None;
@@ -899,14 +1024,21 @@ pub extern "C" fn frame(dt: f32) -> *const u8 {
         }
         Mode::Single(g) => {
             if a.restart && g.state != State::Playing {
-                let staged = *STAGE.lock().unwrap();
+                let staged = *STAGE
+                    .lock()
+                    .unwrap_or_else(std::sync::PoisonError::into_inner);
                 if let Some(c) = staged {
                     **g = *stage_game(c);
                 } else {
                     a.seed += 1;
                     **g = *new_game(a.seed, g.mode);
                 }
-                g.set_ghost(GHOST.lock().unwrap().clone());
+                g.set_ghost(
+                    GHOST
+                        .lock()
+                        .unwrap_or_else(std::sync::PoisonError::into_inner)
+                        .clone(),
+                );
                 a.counted = false;
             }
             if gear_edge & 1 != 0 {
@@ -933,12 +1065,16 @@ pub extern "C" fn frame(dt: f32) -> *const u8 {
                 if let Some(ng) = g.make_ghost() {
                     let better = GHOST
                         .lock()
-                        .unwrap()
+                        .unwrap_or_else(std::sync::PoisonError::into_inner)
                         .as_ref()
                         .is_none_or(|o| o.seed != ng.seed || o.mode != ng.mode || ng.beats(o));
                     if better {
-                        *GHOST.lock().unwrap() = Some(ng.clone());
-                        *NEW_GHOST.lock().unwrap() = Some(ng);
+                        *GHOST
+                            .lock()
+                            .unwrap_or_else(std::sync::PoisonError::into_inner) = Some(ng.clone());
+                        *NEW_GHOST
+                            .lock()
+                            .unwrap_or_else(std::sync::PoisonError::into_inner) = Some(ng);
                     }
                 }
                 let gain = with_profile(|p| p.record(&r, TODAY.load(Ordering::Relaxed)));
@@ -949,14 +1085,25 @@ pub extern "C" fn frame(dt: f32) -> *const u8 {
                     if let Some((code, _)) =
                         with_profile(|p| p.record_daily(day, score, secs, r.finished))
                     {
-                        *DAILY_CODE.lock().unwrap() = code;
+                        *DAILY_CODE
+                            .lock()
+                            .unwrap_or_else(std::sync::PoisonError::into_inner) = code;
                     }
                 }
                 PROFILE_DIRTY.store(1, Ordering::Relaxed);
-                if day == 0 && STAGE.lock().unwrap().is_none() {
-                    let mut gr = *GARAGE.lock().unwrap();
+                if day == 0
+                    && STAGE
+                        .lock()
+                        .unwrap_or_else(std::sync::PoisonError::into_inner)
+                        .is_none()
+                {
+                    let mut gr = *GARAGE
+                        .lock()
+                        .unwrap_or_else(std::sync::PoisonError::into_inner);
                     g.coins_earned = gr.earn(&r);
-                    *GARAGE.lock().unwrap() = gr;
+                    *GARAGE
+                        .lock()
+                        .unwrap_or_else(std::sync::PoisonError::into_inner) = gr;
                     GARAGE_DIRTY.store(1, Ordering::Relaxed);
                 }
             }
@@ -968,7 +1115,9 @@ pub extern "C" fn frame(dt: f32) -> *const u8 {
             d.render(&mut a.fb);
             a.aparams = AudioParams::default();
             if let Some(c) = d.take_code() {
-                *STAGE.lock().unwrap() = Some(c);
+                *STAGE
+                    .lock()
+                    .unwrap_or_else(std::sync::PoisonError::into_inner) = Some(c);
                 a.counted = false;
                 next = Some(Mode::Single(stage_game(c)));
             }
@@ -985,10 +1134,19 @@ pub extern "C" fn frame(dt: f32) -> *const u8 {
                 NEW_BADGES.fetch_or(gain.badges_new, Ordering::Relaxed);
                 PROFILE_DIRTY.store(1, Ordering::Relaxed);
                 // stages of a rally, a championship or a tour pay coins like any other race
-                if DAILY.load(Ordering::Relaxed) == 0 && STAGE.lock().unwrap().is_none() {
-                    let mut gr = *GARAGE.lock().unwrap();
+                if DAILY.load(Ordering::Relaxed) == 0
+                    && STAGE
+                        .lock()
+                        .unwrap_or_else(std::sync::PoisonError::into_inner)
+                        .is_none()
+                {
+                    let mut gr = *GARAGE
+                        .lock()
+                        .unwrap_or_else(std::sync::PoisonError::into_inner);
                     r.add_coins(gr.earn(&res));
-                    *GARAGE.lock().unwrap() = gr;
+                    *GARAGE
+                        .lock()
+                        .unwrap_or_else(std::sync::PoisonError::into_inner) = gr;
                     GARAGE_DIRTY.store(1, Ordering::Relaxed);
                 }
             }
@@ -1046,7 +1204,11 @@ pub extern "C" fn height() -> u32 {
 
 #[no_mangle]
 pub extern "C" fn audio_init(sample_rate: f32) {
-    if let Some(a) = APP.lock().unwrap().as_mut() {
+    if let Some(a) = APP
+        .lock()
+        .unwrap_or_else(std::sync::PoisonError::into_inner)
+        .as_mut()
+    {
         a.synth = Some(Synth::new(sample_rate, a.seed));
     }
 }
@@ -1054,7 +1216,9 @@ pub extern "C" fn audio_init(sample_rate: f32) {
 /// Renders `n` mono samples with the latest game parameters; returns a pointer into wasm memory.
 #[no_mangle]
 pub extern "C" fn audio_fill(n: u32) -> *const f32 {
-    let mut guard = APP.lock().unwrap();
+    let mut guard = APP
+        .lock()
+        .unwrap_or_else(std::sync::PoisonError::into_inner);
     let a = guard.as_mut().expect("init first");
     let n = (n as usize).min(1 << 16); // hostile sizes must not exhaust wasm memory
     if a.abuf.len() < n {
@@ -1071,7 +1235,9 @@ pub extern "C" fn audio_fill(n: u32) -> *const f32 {
 /// 0 playing, 1 time up, 2 finished (single mode; P1 in versus). Handy for tests and the page.
 #[no_mangle]
 pub extern "C" fn state_code() -> u32 {
-    let guard = APP.lock().unwrap();
+    let guard = APP
+        .lock()
+        .unwrap_or_else(std::sync::PoisonError::into_inner);
     let a = guard.as_ref().expect("init first");
     let s = match &a.mode {
         Mode::Single(g) => g.state,
@@ -1096,7 +1262,9 @@ pub extern "C" fn set_lang(i: u32) {
 /// Current score of player 1 (the page keeps the personal best in localStorage).
 #[no_mangle]
 pub extern "C" fn score() -> u32 {
-    let guard = APP.lock().unwrap();
+    let guard = APP
+        .lock()
+        .unwrap_or_else(std::sync::PoisonError::into_inner);
     let a = guard.as_ref().expect("init first");
     match &a.mode {
         Mode::Single(g) => g.score as u32,
@@ -1111,7 +1279,9 @@ pub extern "C" fn score() -> u32 {
 /// Scratch buffer shared with the page: returns a pointer to at least `n` bytes.
 #[no_mangle]
 pub extern "C" fn buf_ptr(n: u32) -> *mut u8 {
-    let mut guard = APP.lock().unwrap();
+    let mut guard = APP
+        .lock()
+        .unwrap_or_else(std::sync::PoisonError::into_inner);
     let a = guard.as_mut().expect("init first");
     a.save_buf.resize((n as usize).min(1 << 16), 0);
     a.save_buf.as_mut_ptr()
@@ -1120,7 +1290,9 @@ pub extern "C" fn buf_ptr(n: u32) -> *mut u8 {
 /// Career: load a save string the page wrote into the scratch buffer (`n` bytes). Returns 1 on success.
 #[no_mangle]
 pub extern "C" fn career_load(n: u32) -> u32 {
-    let mut guard = APP.lock().unwrap();
+    let mut guard = APP
+        .lock()
+        .unwrap_or_else(std::sync::PoisonError::into_inner);
     let a = guard.as_mut().expect("init first");
     let n = (n as usize).min(a.save_buf.len());
     let txt = String::from_utf8_lossy(&a.save_buf[..n]).to_string();
@@ -1137,7 +1309,9 @@ pub extern "C" fn career_load(n: u32) -> u32 {
 /// and returns its length (else 0). The page stores it in localStorage.
 #[no_mangle]
 pub extern "C" fn career_save() -> u32 {
-    let mut guard = APP.lock().unwrap();
+    let mut guard = APP
+        .lock()
+        .unwrap_or_else(std::sync::PoisonError::into_inner);
     let a = guard.as_mut().expect("init first");
     let txt = match &mut a.mode {
         Mode::Career(c) => c.take_save(),
