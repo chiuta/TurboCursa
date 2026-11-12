@@ -94,3 +94,5 @@ jobs:
           TAG="${{ github.event.inputs.tag || github.ref_name }}"
           gh release create "$TAG" out/* --title "TURBOCURSA $TAG" --notes-file RELEASE_NOTES.md --target "${{ github.sha }}" \
             || gh release upload "$TAG" out/* --clobber
+          # make it the "latest" release so releases/latest/download/... links work
+          gh release edit "$TAG" --prerelease=false --latest
