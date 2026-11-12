@@ -9,6 +9,12 @@
 - Settings and garage persist in the browser and sync across tabs.
 - Fugitive marker on the radar, fork signs visible to everyone.
 
+### Phone and install (web)
+- Touch controls rebuilt: big labelled GAS and BRAKE pedals, wide steering buttons and a turbo bar in portrait; side pedals over the picture in landscape; sliding a thumb between buttons works.
+- Menu, rotate-to-landscape (orientation lock, with a forced-rotation fallback for iOS) and fullscreen buttons.
+- Installable as an app (manifest, service worker, offline) with a one-click install button where the browser supports it.
+- Release workflow builds native binaries for Linux, Windows and macOS, the web build and the source zip; `install.sh` and `install.ps1` install and add a launcher.
+
 ### Changed
 - `game.rs` and `render.rs` split into modules; pack calibration reworked (rivals run at skill 0.50–0.68).
 - Web page: no per-frame 1 MB copy, key state released on blur or tab switch, audio suspended while the tab is hidden, Ctrl/Cmd/Alt shortcuts no longer trigger share or photo, keyboard focus outlines.

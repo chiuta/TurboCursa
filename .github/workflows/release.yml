@@ -1,0 +1,96 @@
+name: release
+
+# Builds the native game for Linux, Windows and macOS, the single-file web build and the
+# source zip, then publishes them as a GitHub release.
+#   - push a tag:      git tag v1.5.0 && git push origin v1.5.0
+#   - or run manually: Actions > release > Run workflow (it creates the tag for you)
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag"
+        default: "v1.5.0"
+
+permissions:
+  contents: write
+
+jobs:
+  native:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { os: ubuntu-22.04, name: linux-x86_64, target: "", dir: target/release, bin: turbo }
+          - { os: windows-latest, name: windows-x86_64, target: "", dir: target/release, bin: turbo.exe }
+          - { os: macos-latest, name: macos-arm64, target: "", dir: target/release, bin: turbo }
+          - { os: macos-latest, name: macos-x86_64, target: x86_64-apple-darwin, dir: target/x86_64-apple-darwin/release, bin: turbo }
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+      - name: Linux audio headers
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y libasound2-dev pkg-config
+      - name: Build
+        shell: bash
+        run: |
+          if [ -n "${{ matrix.target }}" ]; then T="--target ${{ matrix.target }}"; else T=""; fi
+          cargo build --release --features native,audio --bin turbo $T
+      - name: Package (unix)
+        if: runner.os != 'Windows'
+        run: |
+          mkdir pkg
+          cp ${{ matrix.dir }}/${{ matrix.bin }} pkg/turbocursa
+          cp LICENSE README.md pkg/
+          tar -C pkg -czf turbocursa-${{ matrix.name }}.tar.gz .
+      - name: Package (windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory pkg | Out-Null
+          Copy-Item ${{ matrix.dir }}/${{ matrix.bin }} pkg/turbocursa.exe
+          Copy-Item LICENSE,README.md pkg/
+          Compress-Archive -Path pkg/* -DestinationPath turbocursa-${{ matrix.name }}.zip
+      - uses: actions/upload-artifact@v4
+        with:
+          name: native-${{ matrix.name }}
+          path: turbocursa-${{ matrix.name }}.*
+
+  web:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+      - run: ./build_web.sh
+      - uses: actions/upload-artifact@v4
+        with:
+          name: web
+          path: dist/turbocursa.html
+
+  publish:
+    needs: [native, web]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          path: out
+          merge-multiple: true
+      - name: Source zip and checksums
+        run: |
+          TAG="${{ github.event.inputs.tag || github.ref_name }}"
+          git archive --format=zip --prefix="turbocursa-${TAG}/" -o "out/turbocursa-src.zip" HEAD
+          cd out && sha256sum * > SHA256SUMS && cat SHA256SUMS
+      - name: Create release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG="${{ github.event.inputs.tag || github.ref_name }}"
+          gh release create "$TAG" out/* --title "TURBOCURSA $TAG" --notes-file RELEASE_NOTES.md --target "${{ github.sha }}" \
+            || gh release upload "$TAG" out/* --clobber

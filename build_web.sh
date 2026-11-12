@@ -11,3 +11,5 @@ t = open("web/index.template.html").read().replace("__WASM_B64__", base64.b64enc
 open("dist/turbocursa.html", "w").write(t)
 print("dist/turbocursa.html ready (%d bytes)" % len(t))
 PY
+cp web/pwa/* dist/
+echo "PWA files copied to dist/"

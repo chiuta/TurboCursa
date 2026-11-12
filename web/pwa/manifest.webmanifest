@@ -1,0 +1,24 @@
+{
+  "id": "turbocursa",
+  "name": "TURBOCURSA",
+  "short_name": "TURBOCURSA",
+  "description": "Pseudo-3D arcade racer written in Rust. Plays offline.",
+  "start_url": "turbocursa.html",
+  "scope": "./",
+  "display": "standalone",
+  "display_override": ["fullscreen", "standalone"],
+  "orientation": "any",
+  "background_color": "#0b0b12",
+  "theme_color": "#0b0b12",
+  "categories": ["games"],
+  "icons": [
+    {"src": "icon-192.png", "sizes": "192x192", "type": "image/png"},
+    {"src": "icon-512.png", "sizes": "512x512", "type": "image/png"},
+    {"src": "icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"}
+  ],
+  "shortcuts": [
+    {"name": "Daily challenge", "url": "turbocursa.html?daily"},
+    {"name": "Weekly challenge", "url": "turbocursa.html?weekly"},
+    {"name": "Career", "url": "turbocursa.html?mode=career"}
+  ]
+}
