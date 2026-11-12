@@ -1,0 +1,32 @@
+[package]
+name = "turbocursa"
+version = "1.5.0"
+edition = "2021"
+description = "Clean-room pseudo-3D arcade racing game: original code, art and name"
+license = "MIT"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+minifb = { version = "0.27", optional = true }
+cpal = { version = "0.15", optional = true }
+
+[features]
+native = ["minifb"]
+audio = ["cpal"]
+web = []
+
+[[bin]]
+name = "turbo"
+path = "src/bin/turbo.rs"
+required-features = ["native"]
+
+[[bin]]
+name = "dump"
+path = "src/bin/dump.rs"
+
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
