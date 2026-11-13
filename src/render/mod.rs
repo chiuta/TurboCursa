@@ -2064,4 +2064,17 @@ pub fn render_view(g: &Game, fb: &mut [u32], vw_: usize, vh_: usize) {
         draw_mission_hud(fb, g);
         draw_slope(fb, g);
     }
+    if g.paused {
+        draw_pause(fb, vh_);
+    }
+}
+
+/// Dims the picture and shows the pause overlay.
+fn draw_pause(fb: &mut [u32], h: usize) {
+    for px in fb.iter_mut() {
+        *px = shade(*px, 0.3);
+    }
+    let y = h as i32 / 2;
+    text_center(fb, y - 30, i18n::tr(S::Paused), 4, rgb(255, 210, 63));
+    text_center(fb, y + 14, i18n::tr(S::PauseHint), 1, rgb(255, 255, 255));
 }

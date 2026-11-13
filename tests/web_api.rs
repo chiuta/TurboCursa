@@ -139,3 +139,32 @@ fn career_save_and_load_through_the_browser_api() {
     assert_eq!(career_save(), 0);
     assert_eq!(career_load(4), 0);
 }
+
+#[test]
+fn browser_pause_freezes_and_restarts() {
+    let _g = LOCK.lock().unwrap_or_else(|e| e.into_inner());
+    set_pick(0);
+    init(11, 0);
+    set_input(4);
+    for _ in 0..120 {
+        frame(0.016);
+    }
+    assert_eq!(pause_ctl(2), 0);
+    assert_eq!(pause_ctl(1), 1, "losing focus pauses");
+    assert_eq!(pause_ctl(1), 1, "pausing twice stays paused");
+    let (t, s) = (state_code(), score());
+    for _ in 0..120 {
+        frame(0.016);
+    }
+    assert_eq!((state_code(), score()), (t, s));
+    assert_eq!(pause_ctl(0), 0, "toggle resumes");
+    assert_eq!(pause_ctl(0), 1, "toggle pauses");
+    assert_eq!(pause_ctl(7), 1, "unknown commands only report");
+    set_input(32); // Enter while paused restarts the stage
+    frame(0.016);
+    set_input(0);
+    assert_eq!(pause_ctl(2), 0, "a restarted stage is running");
+    for v in [0u32, 1, 2, 3, u32::MAX] {
+        assert!(pause_ctl(v) <= 1);
+    }
+}

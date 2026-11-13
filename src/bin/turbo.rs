@@ -1,4 +1,4 @@
-//! Native window front-end (TURBOCURSA 1.6).
+//! Native window front-end (TURBOCURSA 1.7).
 //!   cargo run --release --features native --bin turbo [-- --versus | --cpu | --career | --demo | --mode NAME | --car RO] [--class sports|city|truck|bus|moped|...] [--level easy|normal|hard|expert|insane] [--weather clear|rain|storm|fog|snow|blizzard|sandstorm|hail|glaze|heatwave|ash|auto] [--surface asphalt|icelake|saltflat|lava|dunes|bog|auto] [--time auto|dawn|day|dusk|night] [--tyre auto|road|rain|snow|offroad] [--setup balanced|sprint|downforce|economy] [--rank N] [--colorblind protan|deutan|tritan|contrast] [--assist 0-3] [--slow 40-100] [--large] [--rally] [--champ TCC1-...|7|10|15] [--tour] [--ghost FILE|TG1;...] [--ghost-export SEED] [--pack 8-16 [--inverted] [--qualify]] [--players 3|4 [--humans N]] [--garage] [--buy 0-3] [--weekly] [--music 0-3] [--mph] [--keys 0-3] [--secret CODE] [--daily] [--design] [--code TCS1-...] [--seed N] [--lang xx]
 //!   modes: campaign timetrial endless rush collector slalom mirror blackout zen (or 0-8)
 //! Photo mode: P on/off (arrows move the camera, Up/Down scrub, Space+Up/Down height), H shows the HUD, C saves a PNG.
@@ -160,8 +160,87 @@ enum Mode {
     Design(Box<turbocursa::design::DesignApp>),
 }
 
+const KNOWN_FLAGS: &[&str] = &[
+    "--assist",
+    "--buy",
+    "--car",
+    "--career",
+    "--champ",
+    "--class",
+    "--code",
+    "--colorblind",
+    "--cpu",
+    "--daily",
+    "--demo",
+    "--design",
+    "--garage",
+    "--ghost",
+    "--ghost-export",
+    "--humans",
+    "--inverted",
+    "--keys",
+    "--kmh",
+    "--lang",
+    "--large",
+    "--level",
+    "--mode",
+    "--mode-index",
+    "--mph",
+    "--music",
+    "--nopick",
+    "--pack",
+    "--players",
+    "--qualify",
+    "--rally",
+    "--rank",
+    "--secret",
+    "--seed",
+    "--setup",
+    "--slow",
+    "--surface",
+    "--time",
+    "--tour",
+    "--tyre",
+    "--versus",
+    "--weather",
+    "--weekly",
+    "--help",
+    "--version",
+];
+
+const USAGE: &str = "TURBOCURSA - pseudo-3D arcade racer
+
+Usage: turbocursa [OPTIONS]
+
+Play:    --daily  --weekly  --career  --rally  --tour  --champ 7|10|15|TCC1-...  --design  --code TCS1-...
+Modes:   --mode campaign|timetrial|endless|rush|collector|slalom|mirror|blackout|zen
+Versus:  --versus  --cpu  --players 3|4 [--humans N]  --pack 8-16 [--inverted] [--qualify]
+Car:     --car RO  --class sports|sedan|city|truck|...  --level easy|normal|hard|expert|insane
+World:   --weather clear|rain|storm|fog|snow|...|auto  --surface asphalt|icelake|...|auto  --time auto|dawn|day|dusk|night
+Access:  --colorblind protan|deutan|tritan|contrast  --assist 0-3  --slow 40-100  --calm (reduced motion)  --large  --lang en|ro|fr|it|es|pt|de|hu
+Extras:  --demo (the pilot drives every level)  --garage  --music 0-3  --mph  --keys 0-3  --seed N  --nopick
+Other:   -h, --help  -V, --version
+
+In a race: arrows steer, Space turbo, Esc pause (Enter restarts, Esc resumes), P photo mode.
+";
+
 fn main() {
     let args: Vec<String> = std::env::args().skip(1).collect();
+    if args.iter().any(|a| a == "--help" || a == "-h") {
+        print!("{USAGE}");
+        return;
+    }
+    if args.iter().any(|a| a == "--version" || a == "-V") {
+        println!("turbocursa {}", env!("CARGO_PKG_VERSION"));
+        return;
+    }
+    if let Some(bad) = args
+        .iter()
+        .find(|a| a.starts_with('-') && !KNOWN_FLAGS.contains(&a.as_str()) && a.as_str() != "-")
+    {
+        eprintln!("turbocursa: unknown option '{bad}'\nTry 'turbocursa --help'.");
+        std::process::exit(2);
+    }
     let cpu = args.iter().any(|a| a == "--cpu");
     let career = args.iter().any(|a| a == "--career");
     // --car RO | 17 | random : fit a country's car (livery + handling profile)
@@ -283,6 +362,7 @@ fn main() {
     if let Some(f) = arg("--colorblind").and_then(|s| turbocursa::access::parse_filter(&s)) {
         turbocursa::access::set_filter(f);
     }
+    turbocursa::access::set_calm(args.iter().any(|a| a == "--calm"));
     let assist: u8 = arg("--assist").and_then(|s| s.parse().ok()).unwrap_or(0);
     let speed_cap: f32 = arg("--slow")
         .and_then(|s| s.parse::<f32>().ok())
@@ -605,7 +685,24 @@ fn main() {
     let mut fb = vec![0u32; W * H];
     let mut last = Instant::now();
     let mut pad = turbocursa::gamepad::Gamepad::new();
-    while win.is_open() && !win.is_key_down(Key::Escape) && !quit.get() {
+    // only a focus *loss* pauses: a platform that never reports focus must not freeze the game
+    let mut was_focused = false;
+    while win.is_open() && !quit.get() {
+        // Esc pauses a running stage (and resumes it); anywhere else it leaves the game.
+        // Losing the window focus pauses too, so a phone call or an alt-tab never costs a run.
+        let esc = win.is_key_pressed(Key::Escape, KeyRepeat::No);
+        let focused = win.is_active();
+        if let (Mode::Single(g), None) = (&mut mode, &demo) {
+            let lost_focus = was_focused && !focused && g.state == State::Playing && !g.paused;
+            if lost_focus || (esc && (g.state == State::Playing || g.paused)) {
+                g.toggle_pause();
+            } else if esc {
+                break;
+            }
+        } else if esc {
+            break;
+        }
+        was_focused = focused;
         let now = Instant::now();
         let dt = (now - last).as_secs_f32();
         last = now;
@@ -768,13 +865,15 @@ fn main() {
                 }
             }
             Mode::Single(g) => {
-                if let (true, Some(c)) = (enter && g.state != State::Playing, stage_code) {
+                if let (true, Some(c)) =
+                    (enter && (g.state != State::Playing || g.paused), stage_code)
+                {
                     // a shared stage is retried as it is
                     **g = c.game();
                     g.set_rank(rank_now(&profile));
                     g.set_access(assist, speed_cap);
                     counted = false;
-                } else if enter && g.state != State::Playing {
+                } else if enter && (g.state != State::Playing || g.paused) {
                     let was_qualifying = qualify && qual_slot.get().is_none();
                     if was_qualifying {
                         // the timed lap decides the grid slot; the race is on the same stage

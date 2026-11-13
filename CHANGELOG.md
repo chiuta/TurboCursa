@@ -1,5 +1,18 @@
 # Changelog
 
+## 1.7.0
+
+### Added
+- **Pause**: `Esc` pauses a running single-player stage in the native build and in the browser (Esc resumes, Enter restarts the stage, a tap resumes on a phone; the browser toolbar has a pause button). The picture is dimmed and the overlay is translated into all 8 languages. Photo mode hands over to the pause cleanly.
+- **Automatic pause** when the window or tab loses focus (native: only after a real focus loss was observed, so platforms that never report focus cannot freeze the game).
+- **Calm mode** (`--calm`, `?calm`, and automatically with the browser's reduced-motion setting): no screen shake, no strobing busted text, soft lightning flashes.
+- `turbo --help` / `-h`, `--version` / `-V`; an unknown option now stops with a clear message and exit code 2 instead of opening a window.
+- Presentation page: direct download links to the latest release for every variant, and two real screen recordings (install step by step, every option) with WebVTT subtitles in 8 languages.
+- Tests: `tests/pause.rs`, `browser_pause_freezes_and_restarts` in `tests/web_api.rs`.
+
+### Changed
+- `Esc` no longer quits a running stage on the spot (it pauses); outside a stage it still leaves the game, and in the demo it still quits.
+
 ## 1.6.0
 
 ### Added

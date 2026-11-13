@@ -18,6 +18,7 @@ Nouăsprezece peisaje generate: pădure, deșert, amurg, copaci-lume colosali cu
 - Interfață și documentație: English, Română, Français, Italiano, Español, Português, Deutsch, Magyar. Textul din joc folosește un font pixelat; diacriticele sunt desenate ca un semn deasupra literei.
 - Moduri: `--mode campaign|timetrial|endless|rush|collector|slalom|mirror|blackout|zen`, `--cpu` (întrecere cu un rival calculator), `--versus` (2 jucători); web: `?mode=NUME`. · `--career` (divizii, campionate și cupe, cu salvare)
 - Demo: `--demo` pune un pilot AI să parcurgă toate modurile pe toate nivelurile de dificultate, etapă după etapă (mașina demo e protejată și nu consumă combustibil; nu se salvează nimic)
+- Pauză: `Esc` pune pe pauză o etapă în curs (Esc reia, Enter reîncepe); jocul se oprește singur și când fereastra pierde focusul. `--calm` (sau setarea de mișcare redusă a sistemului, în browser) elimină tremurul ecranului și îmblânzește sclipirile; `--help` și `--version` listează opțiunile.
 
 ## Moduri de joc
 

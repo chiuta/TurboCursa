@@ -18,6 +18,7 @@ Dix-neuf paysages générés : forêt, désert, crépuscule, arbres-mondes colos
 - Interface et documentation : English, Română, Français, Italiano, Español, Português, Deutsch, Magyar. Le texte du jeu utilise une police pixel ; les accents sont dessinés comme une marque au-dessus de la lettre.
 - Modes : `--mode campaign|timetrial|endless|rush|collector|slalom|mirror|blackout|zen`, `--cpu` (course contre un rival informatique), `--versus` (2 joueurs) ; web : `?mode=NOM`. · `--career` (divisions, championnats et coupes, avec sauvegarde)
 - Démo : `--demo` laisse un pilote IA parcourir tous les modes à tous les niveaux de difficulté, étape après étape (la voiture de démo est protégée et ne consomme pas de carburant ; rien n'est enregistré)
+- Pause: `Échap` met une étape en cours en pause (Échap reprend, Entrée recommence) ; le jeu se met aussi en pause quand la fenêtre perd le focus. `--calm` (ou le réglage de mouvement réduit du système, dans le navigateur) supprime les secousses d'écran et adoucit les éclairs ; `--help` et `--version` listent les options.
 
 ## Modes de jeu
 

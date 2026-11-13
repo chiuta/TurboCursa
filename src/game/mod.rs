@@ -455,6 +455,8 @@ pub struct Game {
     pub fuel: f32,
     /// photo mode: the game is paused, the camera can be moved
     pub photo: bool,
+    /// pause: nothing moves, an overlay offers resume / restart
+    pub paused: bool,
     pub photo_dx: f32,
     pub photo_dy: f32,
     pub photo_hud: bool,
@@ -957,6 +959,7 @@ impl Game {
             stations,
             fuel: 1.0,
             photo: false,
+            paused: false,
             photo_dx: 0.0,
             photo_dy: 0.0,
             photo_hud: false,
@@ -1335,6 +1338,18 @@ impl Game {
     }
 
     /// Enter / leave photo mode (only while the game is running: a finished game stays as it is).
+    /// Pauses a running stage, or resumes a paused one; menus and finished stages ignore it.
+    pub fn toggle_pause(&mut self) {
+        if self.paused {
+            self.paused = false;
+        } else if self.state == State::Playing {
+            self.paused = true;
+            if self.photo {
+                self.photo_toggle();
+            }
+        }
+    }
+
     pub fn photo_toggle(&mut self) {
         if self.photo {
             self.photo = false;
@@ -1372,6 +1387,9 @@ impl Game {
         } else {
             0.0
         };
+        if self.paused {
+            return;
+        }
         if self.photo {
             self.photo_update(dt, inp);
             return;

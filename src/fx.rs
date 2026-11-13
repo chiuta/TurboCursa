@@ -219,7 +219,7 @@ pub fn post(fb: &mut [u32], p: &FxParams) {
     // vignette table indexed by r2 in 1/256 steps (r2 < 2.1)
     let ti = (p.t * 60.0) as u32;
     let h0 = hash(ti);
-    let (shx, shy) = if p.shake > 0.0 {
+    let (shx, shy) = if p.shake > 0.0 && !crate::access::calm() {
         (
             ((h0 & 7) as i32 - 3) * K as i32 / 2,
             (((h0 >> 3) & 7) as i32 - 3) * K as i32 / 2,

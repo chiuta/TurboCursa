@@ -266,7 +266,7 @@ pub(super) fn weather_fx(fb: &mut [u32], g: &Game, env: &Env) {
             let b = (t / 3.2) as i32;
             let ph = (t / 3.2).fract();
             if h01(b as u32, 300) > 0.45 && ph < 0.12 {
-                let f = (1.0 - ph / 0.12) * 0.5;
+                let f = (1.0 - ph / 0.12) * if crate::access::calm() { 0.1 } else { 0.5 };
                 for px in fb.iter_mut() {
                     let o = unpack(*px);
                     *px = rgb(
@@ -427,7 +427,7 @@ pub(super) fn draw_ghost(fb: &mut [u32], g: &Game, proj: &[SegProj]) {
 pub(super) fn draw_player(fb: &mut [u32], g: &Game) {
     let sp = g.speed / MAX_SPEED;
     let bounce = ((g.elapsed * 38.0).sin() * sp * 0.8).abs() * vk();
-    let shake = if g.shake > 0.0 {
+    let shake = if g.shake > 0.0 && !crate::access::calm() {
         (g.elapsed * 90.0).sin() * 2.0 * vk()
     } else {
         0.0
@@ -890,7 +890,7 @@ pub(super) fn draw_hud(fb: &mut [u32], g: &Game) {
         }
         State::Disqualified => {
             rect_a(fb, 0.0, 0.0, vw() as f32, hf, rgb(20, 0, 10), 0.4, hf);
-            let flash = if (g.elapsed * 6.0) as i32 % 2 == 0 {
+            let flash = if crate::access::calm() || (g.elapsed * 6.0) as i32 % 2 == 0 {
                 rgb(255, 60, 60)
             } else {
                 rgb(80, 120, 255)

@@ -97,6 +97,12 @@ pub extern "C" fn set_filter(i: u32) {
     crate::access::set_filter(i as usize);
 }
 
+/// Calm mode (reduced motion): 1 on, 0 off.
+#[no_mangle]
+pub extern "C" fn set_calm(on: u32) {
+    crate::access::set_calm(on != 0);
+}
+
 /// Driving assist 0..=3 for the next `init`.
 #[no_mangle]
 pub extern "C" fn set_assist(i: u32) {
@@ -1023,7 +1029,7 @@ pub extern "C" fn frame(dt: f32) -> *const u8 {
             a.aparams = AudioParams::default();
         }
         Mode::Single(g) => {
-            if a.restart && g.state != State::Playing {
+            if a.restart && (g.state != State::Playing || g.paused) {
                 let staged = *STAGE
                     .lock()
                     .unwrap_or_else(std::sync::PoisonError::into_inner);
@@ -1324,4 +1330,24 @@ pub extern "C" fn career_save() -> u32 {
         }
         None => 0,
     }
+}
+
+/// Pause control for the page: 0 toggles, 1 pauses (focus lost), 2 only asks. Returns 1 while a
+/// single-player stage is paused. Menus and finished stages are not affected.
+#[no_mangle]
+pub extern "C" fn pause_ctl(cmd: u32) -> u32 {
+    let mut guard = APP
+        .lock()
+        .unwrap_or_else(std::sync::PoisonError::into_inner);
+    if let Some(a) = guard.as_mut() {
+        if let Mode::Single(g) = &mut a.mode {
+            match cmd {
+                0 => g.toggle_pause(),
+                1 if !g.paused => g.toggle_pause(),
+                _ => {}
+            }
+            return u32::from(g.paused);
+        }
+    }
+    0
 }

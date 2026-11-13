@@ -359,7 +359,7 @@ pub(super) fn sky_volcano(fb: &mut [u32], g: &Game, p: &Pal, a: f32) {
     let slot = (g.elapsed / 2.6) as u32;
     let ph = g.elapsed / 2.6 - slot as f32;
     if ph < 0.1 && h01(slot, 5) > 0.35 {
-        let fl = 1.0 - ph / 0.1;
+        let fl = (1.0 - ph / 0.1) * if crate::access::calm() { 0.2 } else { 1.0 };
         let x0 = h01(slot, 6) * vw() as f32;
         bolt(
             fb,

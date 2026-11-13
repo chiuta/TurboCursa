@@ -18,6 +18,7 @@ Nineteen generated landscapes: forest, desert, dusk, colossal world-trees whose 
 - Interface and documentation: English, Română, Français, Italiano, Español, Português, Deutsch, Magyar. In-game text uses a pixel font; accents are drawn as a mark above the letter.
 - Modes: `--mode campaign|timetrial|endless|rush|collector|slalom|mirror|blackout|zen`, `--cpu` (race a computer rival), `--versus` (2 players); web: `?mode=NAME`. Career: `--career` (divisions, leagues and cups, saved)
 - Demo: `--demo` lets an AI pilot drive every mode on every difficulty, stage after stage (the demo car is shielded and uses no fuel; nothing is saved)
+- Pause: `Esc` pauses a running stage (Esc resumes, Enter restarts); the game also pauses when the window loses focus. `--calm` (or the system's reduced-motion setting in the browser) removes screen shake and softens flashes; `--help` and `--version` list the options.
 
 ## Game modes
 

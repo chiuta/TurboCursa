@@ -73,9 +73,11 @@ pub enum S {
     Inverted,
     Normal,
     Ring,
+    Paused,
+    PauseHint,
 }
 
-const N: usize = 23;
+const N: usize = 25;
 type Row = [&'static str; N];
 
 // order: Time Kmh Turbo TimeUp Score PressEnter StageClear Passed({} = count) Winner SecondPlace Draw Rematch First Second Go Checkpoint StageClearBang
@@ -103,6 +105,8 @@ const EN: Row = [
     "CONTROLS INVERTED!",
     "NORMAL",
     "RING!",
+    "PAUSED",
+    "ESC: RESUME   ENTER: RESTART",
 ];
 const RO: Row = [
     "TIMP",
@@ -128,6 +132,8 @@ const RO: Row = [
     "COMENZI INVERSATE!",
     "NORMAL",
     "INEL!",
+    "PAUZĂ",
+    "ESC: CONTINUĂ   ENTER: REÎNCEPE",
 ];
 const FR: Row = [
     "TEMPS",
@@ -153,6 +159,8 @@ const FR: Row = [
     "COMMANDES INVERSÉES!",
     "NORMAL",
     "ANNEAU!",
+    "PAUSE",
+    "ÉCHAP : REPRENDRE   ENTRÉE : REJOUER",
 ];
 const IT: Row = [
     "TEMPO",
@@ -178,6 +186,8 @@ const IT: Row = [
     "COMANDI INVERTITI!",
     "NORMALE",
     "ANELLO!",
+    "PAUSA",
+    "ESC: RIPRENDI   INVIO: RIPROVA",
 ];
 const ES: Row = [
     "TIEMPO",
@@ -203,6 +213,8 @@ const ES: Row = [
     "CONTROLES INVERTIDOS!",
     "NORMAL",
     "ANILLO!",
+    "PAUSA",
+    "ESC: SEGUIR   INTRO: REINTENTAR",
 ];
 const PT: Row = [
     "TEMPO",
@@ -228,6 +240,8 @@ const PT: Row = [
     "COMANDOS INVERTIDOS!",
     "NORMAL",
     "ANEL!",
+    "PAUSA",
+    "ESC: CONTINUAR   ENTER: REPETIR",
 ];
 const DE: Row = [
     "ZEIT",
@@ -253,6 +267,8 @@ const DE: Row = [
     "STEUERUNG UMGEKEHRT!",
     "NORMAL",
     "RING!",
+    "PAUSE",
+    "ESC: WEITER   ENTER: NEUSTART",
 ];
 const HU: Row = [
     "IDŐ",
@@ -278,6 +294,8 @@ const HU: Row = [
     "FORDÍTOTT IRÁNYÍTÁS!",
     "NORMÁL",
     "GYŰRŰ!",
+    "SZÜNET",
+    "ESC: FOLYTAT   ENTER: ÚJRA",
 ];
 
 const TABLE: [&Row; 8] = [&EN, &RO, &FR, &IT, &ES, &PT, &DE, &HU];

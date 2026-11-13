@@ -18,6 +18,7 @@ Neunzehn erzeugte Landschaften: Wald, Wüste, Abenddämmerung, kolossale Weltenb
 - Oberfläche und Dokumentation: English, Română, Français, Italiano, Español, Português, Deutsch, Magyar. Der Spieltext nutzt eine Pixelschrift; Akzente werden als Zeichen über dem Buchstaben gezeichnet.
 - Modi: `--mode campaign|timetrial|endless|rush|collector|slalom|mirror|blackout|zen`, `--cpu` (Rennen gegen einen Computergegner), `--versus` (2 Spieler); Web: `?mode=NAME`. · `--career` (Divisionen, Meisterschaften und Pokale, mit Speicherstand)
 - Demo: `--demo` lässt einen KI-Piloten alle Modi auf allen Schwierigkeitsstufen fahren, Etappe für Etappe (das Demo-Auto ist geschützt und verbraucht keinen Kraftstoff; nichts wird gespeichert)
+- Pause: `Esc` pausiert eine laufende Etappe (Esc setzt fort, Enter startet neu); das Spiel pausiert auch, wenn das Fenster den Fokus verliert. `--calm` (oder die Systemeinstellung für reduzierte Bewegung im Browser) entfernt das Bildschirmzittern und mildert Blitze; `--help` und `--version` listen die Optionen auf.
 
 ## Spielmodi
 

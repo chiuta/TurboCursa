@@ -11,6 +11,16 @@ pub const ASSIST_MAX: u8 = 3;
 
 thread_local! {
     static FILTER: Cell<u8> = const { Cell::new(0) };
+    static CALM: Cell<bool> = const { Cell::new(false) };
+}
+
+/// Calm mode (reduced motion): no screen shake, no strobing police text, soft lightning flashes.
+pub fn set_calm(on: bool) {
+    CALM.with(|c| c.set(on));
+}
+
+pub fn calm() -> bool {
+    CALM.with(|c| c.get())
 }
 
 pub fn set_filter(i: usize) {
