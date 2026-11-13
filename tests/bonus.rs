@@ -149,10 +149,13 @@ fn finishing_the_proving_ground_with_enough_rings_pays() {
     let mut g = game(4);
     let a = proving(&g);
     let hit = |g: &mut Game, n: usize| {
-        let mut k = 0;
-        for o in g.orbs.iter_mut().filter(|o| o.z >= a.az() && o.z <= a.bz()) {
+        for (k, o) in g
+            .orbs
+            .iter_mut()
+            .filter(|o| o.z >= a.az() && o.z <= a.bz())
+            .enumerate()
+        {
             o.taken = k < n;
-            k += 1;
         }
     };
     hit(&mut g, 3);

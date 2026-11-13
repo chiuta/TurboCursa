@@ -299,7 +299,7 @@ fn ui_walkthrough_renders_every_screen() {
         accel: true,
         ..Input::default()
     };
-    for _ in 0..12_000 {
+    for _ in 0..30_000 {
         app.update(0.016, &gas, false, false);
     }
     app.render(&mut fb);

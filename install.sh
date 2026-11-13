@@ -17,13 +17,29 @@ case "$(uname -m)" in
   *) ARCH=unknown ;;
 esac
 NAME="turbocursa-${OS}-${ARCH}.tar.gz"
-URL="https://github.com/${REPO}/releases/latest/download/${NAME}"
+BASE="https://github.com/${REPO}/releases/latest/download"
 mkdir -p "$BIN"
 TMP="$(mktemp -d)"; trap 'rm -rf "$TMP"' EXIT
-if curl -fsSL "$URL" -o "$TMP/pkg.tar.gz" 2>/dev/null; then
-  tar -xzf "$TMP/pkg.tar.gz" -C "$TMP"
+sha256_of() {
+  if command -v sha256sum >/dev/null 2>&1; then sha256sum "$1" | cut -d' ' -f1
+  elif command -v shasum >/dev/null 2>&1; then shasum -a 256 "$1" | cut -d' ' -f1
+  else echo ""; fi
+}
+# download, then check the archive against the release's SHA256SUMS before anything is unpacked
+fetch_verified() {
+  curl -fsSL "${BASE}/${NAME}" -o "$TMP/pkg.tar.gz" 2>/dev/null || return 1
+  curl -fsSL "${BASE}/SHA256SUMS" -o "$TMP/SHA256SUMS" 2>/dev/null || { echo "Cannot fetch SHA256SUMS; refusing to install an unverified download."; return 1; }
+  WANT="$(grep " ${NAME}\$" "$TMP/SHA256SUMS" | cut -d' ' -f1)"
+  HAVE="$(sha256_of "$TMP/pkg.tar.gz")"
+  if [ -z "$WANT" ] || [ -z "$HAVE" ] || [ "$WANT" != "$HAVE" ]; then
+    echo "Checksum mismatch (or no sha256 tool); refusing to install."; return 1
+  fi
+}
+if fetch_verified; then
+  # unpack only the one file we expect
+  tar -xzf "$TMP/pkg.tar.gz" -C "$TMP" turbocursa 2>/dev/null || tar -xzf "$TMP/pkg.tar.gz" -C "$TMP" ./turbocursa
   install -m 755 "$TMP/turbocursa" "$BIN/turbocursa"
-  echo "Installed: $BIN/turbocursa"
+  echo "Installed: $BIN/turbocursa (checksum verified)"
 elif command -v cargo >/dev/null 2>&1; then
   echo "No release binary for ${OS}-${ARCH}; building from source (a few minutes)..."
   cargo install --git "https://github.com/${REPO}" --features native,audio --bin turbo --root "${HOME}/.local" --force
@@ -39,7 +55,7 @@ if [ "$OS" = linux ]; then
 Type=Application
 Name=TURBOCURSA
 Comment=Pseudo-3D arcade racer
-Exec=$BIN/turbocursa
+Exec="$BIN/turbocursa"
 Terminal=false
 Categories=Game;
 D

@@ -844,7 +844,8 @@ pub(super) fn draw_hud(fb: &mut [u32], g: &Game) {
 
     if g.banner_t > 0.0 {
         let a = (g.banner_t * 3.0).min(1.0);
-        let w = font::text_width(i18n::banner(g.banner), 2 * vk() as i32) as f32;
+        let btxt = g.banner_text();
+        let w = font::text_width(&btxt, 2 * vk() as i32) as f32;
         rect_a(
             fb,
             (vw() as f32 - w) / 2.0 - kf(10.0),
@@ -855,7 +856,7 @@ pub(super) fn draw_hud(fb: &mut [u32], g: &Game) {
             0.55 * a,
             hf,
         );
-        text_center(fb, k(53.0), i18n::banner(g.banner), 2, yellow);
+        text_center(fb, k(53.0), &btxt, 2, yellow);
     }
     match g.state {
         State::TimeUp => {

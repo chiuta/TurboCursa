@@ -127,7 +127,7 @@ fn every_banner_in_game_code_is_translated_into_all_languages() {
     // translated through the string tables instead of the item table
     let in_tables = [
         "GO!",
-        "CHECKPOINT +30",
+        "CHECKPOINT",
         "STAGE CLEAR!",
         "LAP",
         "INVERT",

@@ -15,7 +15,8 @@ impl Rng {
     }
 }
 
-const ALPHA: &[u8] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_;:,. \n\t%\xC3\xA9";
+const ALPHA: &[u8] =
+    b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_;:,. \n\t%\xC3\xA9";
 
 fn garbage(r: &mut Rng, len: usize) -> String {
     let b: Vec<u8> = (0..len).map(|_| ALPHA[r.below(ALPHA.len())]).collect();
@@ -36,7 +37,9 @@ fn feed(s: &str) {
 #[test]
 fn hostile_text_never_panics() {
     let mut r = Rng(0x9E37_79B9_7F4A_7C15);
-    let prefixes = ["TCS1-", "TCC1-", "TG1;", "TG2;", "TG2", "TS1", "TC-", "TW-", "DAILY", "WEEKLY", "TCG"];
+    let prefixes = [
+        "TCS1-", "TCC1-", "TG1;", "TG2;", "TG2", "TS1", "TC-", "TW-", "DAILY", "WEEKLY", "TCG",
+    ];
     for i in 0..4000 {
         let len = r.below(if i % 50 == 0 { 3000 } else { 120 });
         let mut s = garbage(&mut r, len);

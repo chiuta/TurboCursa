@@ -17,6 +17,7 @@ Diecinueve paisajes generados: bosque, desierto, atardecer, colosales árboles-m
 - Controles: flechas o WASD, Espacio = turbo, Intro = reintentar, M = silencio. Jugador 2: WASD + Mayús izquierda.
 - Interfaz y documentación: English, Română, Français, Italiano, Español, Português, Deutsch, Magyar. El texto del juego usa una fuente de píxeles; los acentos se dibujan como una marca sobre la letra.
 - Modos: `--mode campaign|timetrial|endless|rush|collector|slalom|mirror|blackout|zen`, `--cpu` (carrera contra un rival del ordenador), `--versus` (2 jugadores); web: `?mode=NOMBRE`. · `--career` (divisiones, campeonatos y copas, con guardado)
+- Demo: `--demo` hace que un piloto de IA recorra todos los modos en todos los niveles de dificultad, etapa tras etapa (el coche de la demo está protegido y no gasta combustible; no se guarda nada)
 
 ## Modos de juego
 
@@ -48,7 +49,7 @@ Cada país tiene su propio coche de carreras: una librea pintada con los colores
 
 ## Dificultad, vehículos, obstáculos y bonificaciones
 
-- **5 niveles de dificultad** — Fácil, Normal, Difícil, Experto, Loco: modifican el tiempo inicial y las bonificaciones de los puntos de control (×1,25 … ×0,68), la cantidad y velocidad del tráfico, cuántos obstáculos y bonificaciones hay en la carretera y lo que cuesta un choque. En carrera, el nivel también hace más fuertes o más débiles a los rivales simulados.
+- **5 niveles de dificultad** — Fácil, Normal, Difícil, Experto, Loco: modifican el tiempo inicial y las bonificaciones de los puntos de control (×2,0 … ×1,6), la cantidad y velocidad del tráfico, cuántos obstáculos y bonificaciones hay en la carretera y lo que cuesta un choque. En carrera, el nivel también hace más fuertes o más débiles a los rivales simulados.
 - **19 clases de vehículo** para tu coche: deportivo, berlina, microcoche, camión, tráiler (TIR), ciclomotor, moto, trike, tuk-tuk, cuatriciclo, buggy, monoplaza, coche de rally, pick-up, furgoneta, autobús, tractor, limusina y monster truck. Cada una conserva la librea y el perfil del país y añade su equilibrio: velocidad punta, aceleración, agarre, anchura, resistencia a choques y reloj. Las dos ruedas son estrechas, ágiles y frágiles; autobús, tractor y monster truck son anchos y resistentes; el monoplaza es el más rápido y el más frágil.
 - **Tráfico variado**: coches, microcoches, camiones, tráileres, autobuses, tractores, motos y trikes; cuanto mayor el nivel, más vehículos pesados.
 - **En la carretera**: obstáculos (conos, manchas de aceite, barreras, baches, charcos, barro) y bonificaciones (+4 s, turbo extra, impulso de velocidad, escudo, monedas, tráfico congelado, puntuación ×2). Los efectos activos aparecen como barras de colores bajo el reloj.

@@ -78,7 +78,6 @@ fn main() {
             } else {
                 0.0
             };
-            time = if i < t.checkpoints.len() { time } else { time };
         }
     }
     println!("TRACK (300 seeds): segs {}..{}  max|y| {:.0}  max slope/seg {:.0}  max|curve| {:.2}  worst end-seam jump {:.0}", minn, maxn, maxy, maxslope, maxcurve, maxseam);

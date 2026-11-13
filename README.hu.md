@@ -17,6 +17,7 @@ Tizenkilenc generált táj: erdő, sivatag, alkony, a felhőkben rejtőző koron
 - Vezérlés: nyilak vagy WASD, Szóköz = turbó, Enter = újra, M = néma. 2. játékos: WASD + bal Shift.
 - Felület és dokumentáció: English, Română, Français, Italiano, Español, Português, Deutsch, Magyar. A játékszöveg pixelbetűt használ; az ékezeteket a betű fölé rajzolt jel jelzi.
 - Módok: `--mode campaign|timetrial|endless|rush|collector|slalom|mirror|blackout|zen`, `--cpu` (verseny számítógépes riválissal), `--versus` (2 játékos); web: `?mode=NÉV`. · `--career` (divíziók, bajnokságok és kupák, mentéssel)
+- Demó: `--demo` egy MI-pilótával végigjátszatja az összes módot az összes nehézségi szinten, pályáról pályára (a demóautó védett és nem fogyaszt üzemanyagot; semmi sem kerül mentésre)
 
 ## Játékmódok
 
@@ -48,7 +49,7 @@ Minden országnak saját versenyautója van: nemzeti színekkel festett (közel�
 
 ## Nehézség, járművek, akadályok és bónuszok
 
-- **5 nehézségi szint** — Könnyű, Normál, Nehéz, Profi, Őrült: skálázzák a kezdő időt és az ellenőrzőpont-bónuszokat (×1,25 … ×0,68), a forgalom sűrűségét és sebességét, az úton lévő akadályok és bónuszok számát és azt, mennyit veszítesz egy ütközésnél. Karrierben a szint a szimulált riválisokat is erősebbé vagy gyengébbé teszi.
+- **5 nehézségi szint** — Könnyű, Normál, Nehéz, Profi, Őrült: skálázzák a kezdő időt és az ellenőrzőpont-bónuszokat (×2,0 … ×1,6), a forgalom sűrűségét és sebességét, az úton lévő akadályok és bónuszok számát és azt, mennyit veszítesz egy ütközésnél. Karrierben a szint a szimulált riválisokat is erősebbé vagy gyengébbé teszi.
 - **19 járműosztály** a saját autódnak: sportautó, szedán, mikroautó, teherautó, nyergesvontató (TIR), segédmotoros kerékpár, motorkerékpár, trike, tuk-tuk, quad, buggy, formaautó, raliautó, pickup, furgon, busz, traktor, limuzin és monster truck. Mindegyik megtartja az ország színeit és menettulajdonságait, és hozza a saját kompromisszumát: végsebesség, gyorsulás, tapadás, szélesség, ütközésállóság és óra. A kétkerekűek keskenyek, fürgék és törékenyek; a busz, a traktor és a monster truck szélesek és szívósak; a formaautó a leggyorsabb és a legtörékenyebb.
 - **Vegyes forgalom**: autók, mikroautók, teherautók, nyergesvontatók, buszok, traktorok, motorosok és trike-ok; minél magasabb a szint, annál több nehézjármű.
 - **Az úton**: akadályok (bóják, olajfoltok, korlátok, kátyúk, pocsolyák, sár) és bónuszok (+4 mp, extra turbó, sebességlöket, pajzs, érmék, megállított forgalom, ×2 pont). Az aktív hatások színes sávokként látszanak az óra alatt.

@@ -408,7 +408,7 @@ impl Game {
             if seg >= j.b {
                 self.end_detour();
             }
-        } else if self.low() {
+        } else if self.low() && !self.demo {
             // the queue: creeping through is fine, driving into it is not
             let pz = new_pz;
             let len = self.track.length;

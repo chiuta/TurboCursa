@@ -308,11 +308,11 @@ impl Difficulty {
     /// (clock multiplier, traffic count, traffic speed, crash speed retention)
     pub fn params(self) -> (f32, f32, f32, f32) {
         match self {
-            Difficulty::Easy => (1.25, 0.6, 0.85, 1.25),
-            Difficulty::Normal => (1.0, 1.0, 1.0, 1.0),
-            Difficulty::Hard => (0.88, 1.25, 1.08, 0.9),
-            Difficulty::Expert => (0.78, 1.5, 1.15, 0.8),
-            Difficulty::Insane => (0.68, 1.8, 1.22, 0.7),
+            Difficulty::Easy => (2.0, 0.6, 0.85, 1.25),
+            Difficulty::Normal => (1.9, 1.0, 1.0, 1.0),
+            Difficulty::Hard => (1.8, 1.25, 1.08, 0.9),
+            Difficulty::Expert => (1.7, 1.5, 1.15, 0.8),
+            Difficulty::Insane => (1.6, 1.8, 1.22, 0.7),
         }
     }
     /// Shift applied to simulated rivals' strength in career mode.
@@ -366,6 +366,7 @@ pub struct Car {
 /// Largest single chain bonus (a checkpoint is worth 1000, so the chain adds spice, not the score).
 pub const CHAIN_CAP: u32 = 2000;
 
+#[derive(Clone)]
 pub struct Game {
     pub track: Track,
     pub pos: f32,
@@ -390,6 +391,8 @@ pub struct Game {
     pub next_cp: usize,
     pub banner: &'static str,
     pub banner_t: f32,
+    /// seconds shown after a CHECKPOINT banner
+    pub banner_bonus: u32,
     pub sky_off: f32,
     pub biome_w: [f32; crate::NB],
     pub steer: f32,
@@ -400,6 +403,9 @@ pub struct Game {
     pub vw: usize,
     pub vh: usize,
     pub crashes: u32,
+    /// demo assist (only the walkthrough sets it): the car is shielded, uses no fuel and ignores jam queues, the clock
+    /// stops at 2 s and the police cannot bust it, so the AI pilot always gets through every stage
+    pub demo: bool,
     pub cps: u32,
     pub turbos: u32,
     pub mode: Mode,
@@ -896,6 +902,7 @@ impl Game {
             next_cp: 0,
             banner: "GO!",
             banner_t: 1.5,
+            banner_bonus: 0,
             sky_off: 0.0,
             biome_w: {
                 let mut w = [0.0; crate::NB];
@@ -912,6 +919,7 @@ impl Game {
             vw: W,
             vh: H,
             crashes: 0,
+            demo: false,
             cps: 0,
             turbos: 0,
             mode,
@@ -1384,6 +1392,10 @@ impl Game {
             *t = (*t - dt).max(0.0);
         }
         self.step_particles(dt);
+        if self.demo {
+            // demo assist: the car is always shielded
+            self.shield_t = self.shield_t.max(1.0);
+        }
         self.wall_cd = (self.wall_cd - dt).max(0.0);
         self.shift_t = (self.shift_t - dt).max(0.0);
         if !self.tod_frozen {
@@ -1680,7 +1692,9 @@ impl Game {
             let range = self.fuel_range();
             let low = self.low_fuel_level();
             let burn = if turbo_on { 1.6 } else { 1.0 };
-            self.fuel = (self.fuel - self.speed * dt / range * burn).max(0.0);
+            if !self.demo {
+                self.fuel = (self.fuel - self.speed * dt / range * burn).max(0.0);
+            }
             let pzf = self.pos + PLAYER_Z;
             let in_st = self.stations.iter().any(|&(a, b)| pzf >= a && pzf < b);
             self.refueling =
@@ -2004,7 +2018,7 @@ impl Game {
                     self.x = (self.x + if self.x >= cx { 0.2 } else { -0.2 }).clamp(-2.2, 2.2);
                     self.shake = 0.6;
                     self.invuln = 0.5;
-                    self.bust += 0.25;
+                    self.bust += 0.15 * self.level.params().3;
                     self.crashes += 1;
                     self.hurt(0.08, 0.03);
                     self.burst_sparks();
@@ -2013,12 +2027,14 @@ impl Game {
             if self.shield_t > 0.0 || !self.low() {
                 pressure *= 0.5;
             }
+            // the police are slower to close in on the easier levels
+            pressure *= 0.5 * self.level.params().3;
             if pressure > 0.0 {
                 self.bust += pressure * dt;
             } else {
                 self.bust -= 0.25 * dt;
             }
-            self.bust = self.bust.clamp(0.0, 1.0);
+            self.bust = self.bust.clamp(0.0, if self.demo { 0.95 } else { 1.0 });
             if self.bust >= 1.0 {
                 self.state = State::Disqualified;
                 self.banner = "BUSTED";
@@ -2123,7 +2139,12 @@ impl Game {
                 }
                 self.next_cp += 1;
                 self.cps += 1;
-                self.banner = "CHECKPOINT +30";
+                self.banner = "CHECKPOINT";
+                self.banner_bonus = if zen {
+                    0
+                } else {
+                    (CP_BONUS * self.clock_mult()).round() as u32
+                };
                 self.banner_t = 2.0;
                 self.score += 1000;
             }
@@ -2161,6 +2182,9 @@ impl Game {
                 if !servicing {
                     self.time -= dt;
                 }
+                if self.demo && self.time < 2.0 {
+                    self.time = 2.0;
+                }
                 if self.time <= 0.0 {
                     self.time = 0.0;
                     self.state = State::TimeUp;
@@ -2169,23 +2193,136 @@ impl Game {
         }
     }
 
+    /// Fuel stop planning for the demo pilot. Returns the input to use while approaching or standing in a
+    /// station it has decided to use, `None` when no stop is needed (or not yet).
+    fn ace_refuel(&self, pz: f32, brake_traffic: bool) -> Option<Input> {
+        let dist_per_fuel = self.fuel_range() / 1.8;
+        let finish = self.track.finish_seg as f32 * SEG_LEN;
+        let k = self.stations.iter().position(|&(_, b)| b > pz)?;
+        let (a, b) = self.stations[k];
+        let next_after = self.stations.get(k + 1).map_or(finish, |n| n.0);
+        let inside = pz >= a;
+        // fill to what the rest of the stage needs, or to the brim when more stops will follow
+        let want = if (finish - a) / dist_per_fuel + 0.06 < 1.0 {
+            ((finish - a) / dist_per_fuel + 0.06).min(1.0)
+        } else {
+            1.0
+        };
+        let reach = self.fuel * dist_per_fuel;
+        let must = reach < (next_after - pz) + 4500.0;
+        if inside {
+            if self.fuel >= want - 0.005 || (!must && self.fuel > 0.5) {
+                return None;
+            }
+        } else {
+            if !must || a - pz > 26000.0 {
+                return None;
+            }
+            // brake in time to enter the station at refuelling speed
+            let v_in = MAX_SPEED * 0.27;
+            let d = a - pz;
+            let need =
+                ((self.speed * self.speed - v_in * v_in).max(0.0)) / (2.0 * BRAKE * 0.6) + 500.0;
+            let target = 0.55;
+            let err = target - self.x;
+            return Some(Input {
+                left: err < -0.04,
+                right: err > 0.04,
+                accel: if d > need {
+                    !brake_traffic
+                } else {
+                    self.speed < v_in * 0.85
+                },
+                brake: d <= need && self.speed > v_in,
+                turbo: false,
+            });
+        }
+        // inside the zone: roll at the speed that tops the tank up by the end of it
+        let t_need = ((want - self.fuel) / 0.30).max(0.05);
+        let v_des = ((b - pz) / t_need).clamp(300.0, MAX_SPEED * 0.27);
+        let err = 0.55 - self.x;
+        Some(Input {
+            left: err < -0.04,
+            right: err > 0.04,
+            accel: self.speed
+                < if self.x < 0.3 {
+                    v_des.max(2200.0)
+                } else {
+                    v_des * 0.9
+                },
+            brake: self.speed
+                > if self.x < 0.3 {
+                    v_des.max(2600.0)
+                } else {
+                    v_des
+                },
+            turbo: false,
+        })
+    }
+
+    /// True while the demo pilot is on a fuel stop (approaching or standing in a station).
+    pub(crate) fn ace_refuelling(&self) -> bool {
+        self.fuel_rule
+            && self.mode != Mode::Zen
+            && self.ace_refuel(self.pos + PLAYER_Z, false).is_some()
+    }
+
+    /// The banner text with its extra (the checkpoint's bonus seconds).
+    pub fn banner_text(&self) -> String {
+        let b = crate::i18n::banner(self.banner);
+        if self.banner == "CHECKPOINT" && self.banner_bonus > 0 {
+            format!("{b} +{}", self.banner_bonus)
+        } else {
+            b.to_string()
+        }
+    }
+
     /// Simple autopilot (steers around traffic, brakes behind slow cars); used by the CPU opponent and the tools.
     pub fn autopilot(&self) -> Input {
-        let mut target = 0.0f32;
+        self.drive(None, true, false)
+    }
+
+    /// The autopilot's rule set with the lane choice exposed: `lane` fixes the lateral target (None = the
+    /// built-in traffic dodging), `yield_traffic` lets it brake behind slower cars, `ace` drives at the
+    /// limit (full-throttle turbo use, tighter margins in cities). Used by the demo pilot, which picks lanes by
+    /// simulating a few seconds ahead.
+    pub fn drive(&self, lane: Option<f32>, yield_traffic: bool, ace: bool) -> Input {
+        let mut i = self.drive_raw(lane, yield_traffic, ace);
+        // Mirror mode swaps left and right for part of every cycle: steer the other way then
+        if self.mode == Mode::Mirror && (self.elapsed + 1.0 / 60.0) % 14.0 > 8.0 {
+            std::mem::swap(&mut i.left, &mut i.right);
+        }
+        i
+    }
+
+    fn drive_raw(&self, lane: Option<f32>, yield_traffic: bool, ace: bool) -> Input {
+        let mut target = lane.unwrap_or(0.0);
         let pz = self.pos + PLAYER_Z;
         let len = self.track.length;
         let mut brake = false;
         for c in &self.cars {
             let d = (c.z - pz).rem_euclid(len);
             if d < 4000.0 && (c.x - self.x).abs() < 0.4 {
-                target = if c.x > 0.0 { -0.66 } else { 0.66 };
-                if d < 1200.0 && self.speed > c.speed * 1.1 {
+                if lane.is_none() {
+                    target = if c.x > 0.0 { -0.66 } else { 0.66 };
+                }
+                if d < 1200.0 && self.speed > c.speed * 1.1 && (lane.is_none() || yield_traffic) {
                     brake = true;
                 }
             }
         }
+        // the demo pilot plans its fuel stops: as few as possible, at the last station it can reach
+        if ace && self.fuel_rule && self.mode != Mode::Zen {
+            if let Some(inp) = self.ace_refuel(pz, brake) {
+                return inp;
+            }
+        }
         // low on fuel: pull into the next station and wait until the tank is nearly full
-        if self.fuel_rule && self.mode != Mode::Zen && self.fuel < self.low_fuel_level() + 0.05 {
+        if !ace
+            && self.fuel_rule
+            && self.mode != Mode::Zen
+            && self.fuel < self.low_fuel_level() + 0.05
+        {
             if let Some(&(a, b)) = self.stations.iter().find(|&&(_, b)| b > pz) {
                 let d = a - pz;
                 if d < 9000.0 {
@@ -2212,7 +2349,7 @@ impl Game {
         let seg = (pz / SEG_LEN) as usize % self.track.segs.len();
         let mut hold = false;
         if self.mode != Mode::Zen {
-            let lim = MAX_SPEED * city::LIMIT * 0.93;
+            let lim = MAX_SPEED * city::LIMIT * if ace { 0.985 } else { 0.93 };
             let soon = self
                 .city
                 .zones
@@ -2250,14 +2387,20 @@ impl Game {
         if self.detour.is_none() {
             if let Some((_, j)) = self.city.next_jam(seg) {
                 let ea = j.exit_a() as f32 * SEG_LEN;
-                if pz > ea - 5000.0 && seg < j.a {
+                if pz > ea - 5000.0 - if ace { self.speed * 0.9 } else { 0.0 }
+                    && seg < j.a
+                    && self.detour.is_none()
+                    && !self.demo
+                {
                     exit_x = Some(1.4);
                 }
             }
         }
         // keep the road centred through the generated curves
-        let cur = self.track.seg_at(self.pos + PLAYER_Z * 3.0).curve;
-        target = (target - cur * 0.05).clamp(-0.8, 0.8);
+        if lane.is_none() {
+            let cur = self.track.seg_at(self.pos + PLAYER_Z * 3.0).curve;
+            target = (target - cur * 0.05).clamp(-0.8, 0.8);
+        }
         if let Some(x) = exit_x {
             target = x;
         }
@@ -2269,7 +2412,7 @@ impl Game {
             brake,
             turbo: self.turbo > 0
                 && self.pos > 20000.0
-                && (self.elapsed as i32 % 14 == 6)
+                && (ace || self.elapsed as i32 % 14 == 6)
                 && !self.city.in_city(seg)
                 && self
                     .city

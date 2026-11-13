@@ -3,6 +3,7 @@
 // Drawing helpers take many plain parameters on purpose; index loops over parallel arrays read best as they are.
 #![allow(clippy::too_many_arguments, clippy::needless_range_loop)]
 pub mod access;
+pub mod ace;
 pub mod audio;
 pub mod badges;
 pub mod bonus;

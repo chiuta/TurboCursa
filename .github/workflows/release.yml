@@ -2,7 +2,7 @@ name: release
 
 # Builds the native game for Linux, Windows and macOS, the single-file web build and the
 # source zip, then publishes them as a GitHub release.
-#   - push a tag:      git tag v1.5.0 && git push origin v1.5.0
+#   - push a tag:      git tag v1.6.0 && git push origin v1.6.0
 #   - or run manually: Actions > release > Run workflow (it creates the tag for you)
 on:
   push:
@@ -11,7 +11,7 @@ on:
     inputs:
       tag:
         description: "Release tag"
-        default: "v1.5.0"
+        default: "v1.6.0"
 
 permissions:
   contents: write
@@ -83,16 +83,21 @@ jobs:
           path: out
           merge-multiple: true
       - name: Source zip and checksums
+        env:
+          TAG: ${{ github.event.inputs.tag || github.ref_name }}
         run: |
-          TAG="${{ github.event.inputs.tag || github.ref_name }}"
+          # the tag comes from a workflow input: never trust it as shell text
+          printf '%s' "$TAG" | grep -Eq '^v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.]+)?$' || { echo "bad tag: $TAG"; exit 1; }
           git archive --format=zip --prefix="turbocursa-${TAG}/" -o "out/turbocursa-src.zip" HEAD
           cd out && sha256sum * > SHA256SUMS && cat SHA256SUMS
       - name: Create release
         env:
           GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.event.inputs.tag || github.ref_name }}
+          SHA: ${{ github.sha }}
         run: |
-          TAG="${{ github.event.inputs.tag || github.ref_name }}"
-          gh release create "$TAG" out/* --title "TURBOCURSA $TAG" --notes-file RELEASE_NOTES.md --target "${{ github.sha }}" \
+          printf '%s' "$TAG" | grep -Eq '^v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.]+)?$' || { echo "bad tag: $TAG"; exit 1; }
+          gh release create "$TAG" out/* --title "TURBOCURSA $TAG" --notes-file RELEASE_NOTES.md --target "$SHA" \
             || gh release upload "$TAG" out/* --clobber
           # make it the "latest" release so releases/latest/download/... links work
           gh release edit "$TAG" --prerelease=false --latest

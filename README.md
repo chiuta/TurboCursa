@@ -17,6 +17,7 @@ Nineteen generated landscapes: forest, desert, dusk, colossal world-trees whose 
 - Controls: arrows or WASD, Space = turbo, Enter = retry, M = mute. Player 2: WASD + Left Shift.
 - Interface and documentation: English, Română, Français, Italiano, Español, Português, Deutsch, Magyar. In-game text uses a pixel font; accents are drawn as a mark above the letter.
 - Modes: `--mode campaign|timetrial|endless|rush|collector|slalom|mirror|blackout|zen`, `--cpu` (race a computer rival), `--versus` (2 players); web: `?mode=NAME`. Career: `--career` (divisions, leagues and cups, saved)
+- Demo: `--demo` lets an AI pilot drive every mode on every difficulty, stage after stage (the demo car is shielded and uses no fuel; nothing is saved)
 
 ## Game modes
 
@@ -48,7 +49,7 @@ Every country has its own race car: a livery painted from its national colours (
 
 ## Difficulty, vehicles, obstacles and bonuses
 
-- **5 difficulty levels** — Easy, Normal, Hard, Expert, Insane: they scale the starting clock and checkpoint bonuses (×1.25 … ×0.68), the amount and speed of traffic, how many obstacles and bonuses lie on the road, and how much speed a crash costs. In career mode the level also makes the simulated rivals stronger or weaker.
+- **5 difficulty levels** — Easy, Normal, Hard, Expert, Insane: they scale the starting clock and checkpoint bonuses (×2.0 … ×1.6), the amount and speed of traffic, how many obstacles and bonuses lie on the road, and how much speed a crash costs. In career mode the level also makes the simulated rivals stronger or weaker.
 - **19 vehicle classes** for your car: sports car, sedan, city microcar, truck, semi-trailer (TIR), moped, motorcycle, trike, tuk-tuk, quad, buggy, formula car, rally car, pickup, van, bus, tractor, limousine and monster truck. Each keeps the country's livery and handling profile and adds its own trade-off: top speed, acceleration, grip, width, crash resilience and clock. Two-wheelers are narrow, nimble and fragile; buses, tractors and monster trucks are wide and tough; the formula car is the fastest and the most brittle.
 - **Mixed traffic**: cars, microcars, trucks, semi-trailers, buses, tractors, motorbikes and trikes; the higher the level, the more heavy vehicles.
 - **On the road**: obstacles (cones, oil slicks, barriers, potholes, puddles, mud) and bonuses (+4 s, extra turbo charge, speed boost, shield, coins, traffic freeze, ×2 score). Active effects show as coloured bars under the clock.

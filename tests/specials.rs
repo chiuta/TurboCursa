@@ -73,8 +73,10 @@ fn pick_screen_blocks_locked_vehicles() {
         a.class, 0,
         "a locked class at the start falls back to the first"
     );
-    let mut info = turbocursa::pick::ProfileInfo::default();
-    info.specials = 0b0001;
+    let info = turbocursa::pick::ProfileInfo {
+        specials: 0b0001,
+        ..Default::default()
+    };
     let a = PickApp::new(19, 1).with_profile(info);
     assert_eq!(a.class, 19);
     assert!(!a.locked(19) && a.locked(20));

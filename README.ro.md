@@ -17,6 +17,7 @@ Nouăsprezece peisaje generate: pădure, deșert, amurg, copaci-lume colosali cu
 - Comenzi: săgeți sau WASD, Space = turbo, Enter = reîncepe, M = fără sunet. Jucătorul 2: WASD + Shift stânga.
 - Interfață și documentație: English, Română, Français, Italiano, Español, Português, Deutsch, Magyar. Textul din joc folosește un font pixelat; diacriticele sunt desenate ca un semn deasupra literei.
 - Moduri: `--mode campaign|timetrial|endless|rush|collector|slalom|mirror|blackout|zen`, `--cpu` (întrecere cu un rival calculator), `--versus` (2 jucători); web: `?mode=NUME`. · `--career` (divizii, campionate și cupe, cu salvare)
+- Demo: `--demo` pune un pilot AI să parcurgă toate modurile pe toate nivelurile de dificultate, etapă după etapă (mașina demo e protejată și nu consumă combustibil; nu se salvează nimic)
 
 ## Moduri de joc
 
@@ -48,7 +49,7 @@ Fiecare țară are propria mașină de curse: o livrea pictată din culorile na�
 
 ## Dificultate, vehicule, obstacole și bonusuri
 
-- **5 niveluri de dificultate** — Ușor, Normal, Greu, Expert, Nebun: modifică timpul de start și bonusurile de checkpoint (×1,25 … ×0,68), cantitatea și viteza traficului, câte obstacole și bonusuri sunt pe drum și cât te costă o ciocnire. În carieră, nivelul face și rivalii simulați mai puternici sau mai slabi.
+- **5 niveluri de dificultate** — Ușor, Normal, Greu, Expert, Nebun: modifică timpul de start și bonusurile de checkpoint (×2,0 … ×1,6), cantitatea și viteza traficului, câte obstacole și bonusuri sunt pe drum și cât te costă o ciocnire. În carieră, nivelul face și rivalii simulați mai puternici sau mai slabi.
 - **19 clase de vehicule** pentru mașina ta: mașină sport, berlină, micromașină, camion, tir, moped, motocicletă, triciclu, tuk-tuk, quad (ATV), buggy, monopost, mașină de raliu, pickup, furgonetă, autobuz, tractor, limuzină și monster truck. Fiecare păstrează culorile și profilul țării și adaugă propriul compromis: viteză maximă, accelerație, aderență, lățime, rezistență la ciocniri și ceas. Vehiculele cu două roți sunt înguste, agile și fragile; autobuzul, tractorul și monster truck-ul sunt late și rezistente; monopostul e cel mai rapid și cel mai fragil.
 - **Trafic amestecat**: mașini, micromașini, camioane, tiruri, autobuze, tractoare, motociclete și triciclete; cu cât nivelul e mai mare, cu atât mai multe vehicule grele.
 - **Pe drum**: obstacole (conuri, pete de ulei, bariere, gropi, bălți, noroi) și bonusuri (+4 s, turbo în plus, impuls de viteză, scut, monede, trafic înghețat, scor ×2). Efectele active apar ca bare colorate sub ceas.

@@ -17,6 +17,7 @@ Neunzehn erzeugte Landschaften: Wald, Wüste, Abenddämmerung, kolossale Weltenb
 - Steuerung: Pfeiltasten oder WASD, Leertaste = Turbo, Enter = neu starten, M = stumm. Spieler 2: WASD + linke Umschalttaste.
 - Oberfläche und Dokumentation: English, Română, Français, Italiano, Español, Português, Deutsch, Magyar. Der Spieltext nutzt eine Pixelschrift; Akzente werden als Zeichen über dem Buchstaben gezeichnet.
 - Modi: `--mode campaign|timetrial|endless|rush|collector|slalom|mirror|blackout|zen`, `--cpu` (Rennen gegen einen Computergegner), `--versus` (2 Spieler); Web: `?mode=NAME`. · `--career` (Divisionen, Meisterschaften und Pokale, mit Speicherstand)
+- Demo: `--demo` lässt einen KI-Piloten alle Modi auf allen Schwierigkeitsstufen fahren, Etappe für Etappe (das Demo-Auto ist geschützt und verbraucht keinen Kraftstoff; nichts wird gespeichert)
 
 ## Spielmodi
 
@@ -48,7 +49,7 @@ Jedes Land hat sein eigenes Rennauto: eine Lackierung in den Landesfarben (angen
 
 ## Schwierigkeit, Fahrzeuge, Hindernisse und Boni
 
-- **5 Schwierigkeitsgrade** — Leicht, Normal, Schwer, Experte, Wahnsinn: Sie skalieren Startzeit und Checkpoint-Boni (×1,25 … ×0,68), Menge und Tempo des Verkehrs, wie viele Hindernisse und Boni auf der Straße liegen und wie viel Geschwindigkeit ein Unfall kostet. In der Karriere machen sie auch die simulierten Rivalen stärker oder schwächer.
+- **5 Schwierigkeitsgrade** — Leicht, Normal, Schwer, Experte, Wahnsinn: Sie skalieren Startzeit und Checkpoint-Boni (×2,0 … ×1,6), Menge und Tempo des Verkehrs, wie viele Hindernisse und Boni auf der Straße liegen und wie viel Geschwindigkeit ein Unfall kostet. In der Karriere machen sie auch die simulierten Rivalen stärker oder schwächer.
 - **19 Fahrzeugklassen** für dein Auto: Sportwagen, Limousine, Kleinstwagen, LKW, Sattelzug (TIR), Moped, Motorrad, Trike, Tuk-Tuk, Quad, Buggy, Formelwagen, Rallyeauto, Pickup, Transporter, Bus, Traktor, Stretchlimo und Monster Truck. Jede behält Lackierung und Profil des Landes und bringt ihren Kompromiss mit: Höchstgeschwindigkeit, Beschleunigung, Haftung, Breite, Unfallfestigkeit und Uhr. Zweiräder sind schmal, wendig und empfindlich; Bus, Traktor und Monster Truck sind breit und robust; der Formelwagen ist der schnellste und zerbrechlichste.
 - **Gemischter Verkehr**: Autos, Kleinstwagen, LKW, Sattelzüge, Busse, Traktoren, Motorräder und Trikes; je höher der Grad, desto mehr Schwerverkehr.
 - **Auf der Straße**: Hindernisse (Pylonen, Ölflecken, Absperrungen, Schlaglöcher, Pfützen, Schlamm) und Boni (+4 s, Extra-Turbo, Temposchub, Schild, Münzen, Verkehr stoppt, Punkte ×2). Aktive Effekte erscheinen als farbige Balken unter der Uhr.

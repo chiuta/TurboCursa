@@ -1,6 +1,6 @@
 use std::time::Instant;
 use turbocursa::{game::*, render, versus::Versus, H, W};
-fn pct(v: &mut Vec<f64>, p: f64) -> f64 {
+fn pct(v: &mut [f64], p: f64) -> f64 {
     v.sort_by(|a, b| a.partial_cmp(b).unwrap());
     v[((v.len() as f64 - 1.0) * p) as usize]
 }

@@ -17,6 +17,7 @@ Dix-neuf paysages générés : forêt, désert, crépuscule, arbres-mondes colos
 - Commandes : flèches ou WASD, Espace = turbo, Entrée = rejouer, M = muet. Joueur 2 : WASD + Maj gauche.
 - Interface et documentation : English, Română, Français, Italiano, Español, Português, Deutsch, Magyar. Le texte du jeu utilise une police pixel ; les accents sont dessinés comme une marque au-dessus de la lettre.
 - Modes : `--mode campaign|timetrial|endless|rush|collector|slalom|mirror|blackout|zen`, `--cpu` (course contre un rival informatique), `--versus` (2 joueurs) ; web : `?mode=NOM`. · `--career` (divisions, championnats et coupes, avec sauvegarde)
+- Démo : `--demo` laisse un pilote IA parcourir tous les modes à tous les niveaux de difficulté, étape après étape (la voiture de démo est protégée et ne consomme pas de carburant ; rien n'est enregistré)
 
 ## Modes de jeu
 
@@ -48,7 +49,7 @@ Chaque pays a sa propre voiture de course : une livrée peinte aux couleurs nati
 
 ## Difficulté, véhicules, obstacles et bonus
 
-- **5 niveaux de difficulté** — Facile, Normal, Difficile, Expert, Fou : ils modulent le chrono de départ et les bonus de points de contrôle (×1,25 … ×0,68), la densité et la vitesse du trafic, le nombre d'obstacles et de bonus sur la route et le coût d'un choc. En carrière, le niveau renforce ou affaiblit aussi les rivaux simulés.
+- **5 niveaux de difficulté** — Facile, Normal, Difficile, Expert, Fou : ils modulent le chrono de départ et les bonus de points de contrôle (×2,0 … ×1,6), la densité et la vitesse du trafic, le nombre d'obstacles et de bonus sur la route et le coût d'un choc. En carrière, le niveau renforce ou affaiblit aussi les rivaux simulés.
 - **19 classes de véhicules** pour votre voiture : voiture de sport, berline, citadine, camion, semi-remorque (TIR), cyclomoteur, moto, trike, tuk-tuk, quad, buggy, monoplace, voiture de rallye, pick-up, fourgon, autobus, tracteur, limousine et monster truck. Chacune garde la livrée et le profil du pays et ajoute son compromis : vitesse de pointe, accélération, adhérence, largeur, résistance aux chocs et chrono. Les deux-roues sont étroits, agiles et fragiles ; bus, tracteur et monster truck sont larges et robustes ; la monoplace est la plus rapide et la plus fragile.
 - **Trafic varié** : voitures, citadines, camions, semi-remorques, bus, tracteurs, motos et trikes ; plus le niveau est haut, plus il y a de poids lourds.
 - **Sur la route** : obstacles (cônes, flaques d'huile, barrières, nids-de-poule, flaques d'eau, boue) et bonus (+4 s, turbo supplémentaire, accélération, bouclier, pièces, trafic gelé, score ×2). Les effets actifs s'affichent en barres colorées sous le chrono.

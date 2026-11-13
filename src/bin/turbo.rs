@@ -1,5 +1,5 @@
-//! Native window front-end (TURBOCURSA 1.5).
-//!   cargo run --release --features native --bin turbo [-- --versus | --cpu | --career | --mode NAME | --car RO] [--class sports|city|truck|bus|moped|...] [--level easy|normal|hard|expert|insane] [--weather clear|rain|storm|fog|snow|blizzard|sandstorm|hail|glaze|heatwave|ash|auto] [--surface asphalt|icelake|saltflat|lava|dunes|bog|auto] [--time auto|dawn|day|dusk|night] [--tyre auto|road|rain|snow|offroad] [--setup balanced|sprint|downforce|economy] [--rank N] [--colorblind protan|deutan|tritan|contrast] [--assist 0-3] [--slow 40-100] [--large] [--rally] [--champ TCC1-...|7|10|15] [--tour] [--ghost FILE|TG1;...] [--ghost-export SEED] [--pack 8-16 [--inverted] [--qualify]] [--players 3|4 [--humans N]] [--garage] [--buy 0-3] [--weekly] [--music 0-3] [--mph] [--keys 0-3] [--secret CODE] [--daily] [--design] [--code TCS1-...] [--seed N] [--lang xx]
+//! Native window front-end (TURBOCURSA 1.6).
+//!   cargo run --release --features native --bin turbo [-- --versus | --cpu | --career | --demo | --mode NAME | --car RO] [--class sports|city|truck|bus|moped|...] [--level easy|normal|hard|expert|insane] [--weather clear|rain|storm|fog|snow|blizzard|sandstorm|hail|glaze|heatwave|ash|auto] [--surface asphalt|icelake|saltflat|lava|dunes|bog|auto] [--time auto|dawn|day|dusk|night] [--tyre auto|road|rain|snow|offroad] [--setup balanced|sprint|downforce|economy] [--rank N] [--colorblind protan|deutan|tritan|contrast] [--assist 0-3] [--slow 40-100] [--large] [--rally] [--champ TCC1-...|7|10|15] [--tour] [--ghost FILE|TG1;...] [--ghost-export SEED] [--pack 8-16 [--inverted] [--qualify]] [--players 3|4 [--humans N]] [--garage] [--buy 0-3] [--weekly] [--music 0-3] [--mph] [--keys 0-3] [--secret CODE] [--daily] [--design] [--code TCS1-...] [--seed N] [--lang xx]
 //!   modes: campaign timetrial endless rush collector slalom mirror blackout zen (or 0-8)
 //! Photo mode: P on/off (arrows move the camera, Up/Down scrub, Space+Up/Down height), H shows the HUD, C saves a PNG.
 //! Ghost: the best finished run of a stage is saved (~/.turbocursa_ghost_<mode>_<seed>) and raced next time.
@@ -73,6 +73,32 @@ mod native_audio {
     }
 }
 
+/// Reads a small text file (saves, ghosts, settings); anything over 2 MB is refused instead of loaded.
+fn read_small<P: AsRef<std::path::Path>>(path: P) -> std::io::Result<String> {
+    use std::io::Read;
+    let mut s = String::new();
+    std::fs::File::open(path)?
+        .take(2 << 20)
+        .read_to_string(&mut s)?;
+    Ok(s)
+}
+
+/// Writes through a temporary file and renames it over the target, so a crash or a full disk
+/// never leaves a half-written save behind.
+fn write_atomic<P: AsRef<std::path::Path>, C: AsRef<[u8]>>(
+    path: P,
+    data: C,
+) -> std::io::Result<()> {
+    let path = path.as_ref();
+    let mut tmp = path.as_os_str().to_owned();
+    tmp.push(".tmp");
+    let tmp = std::path::PathBuf::from(tmp);
+    std::fs::write(&tmp, data)?;
+    std::fs::rename(&tmp, path).inspect_err(|_| {
+        let _ = std::fs::remove_file(&tmp);
+    })
+}
+
 fn ghost_file(g: &Game) -> std::path::PathBuf {
     std::env::var("HOME")
         .map(std::path::PathBuf::from)
@@ -81,18 +107,18 @@ fn ghost_file(g: &Game) -> std::path::PathBuf {
 }
 
 fn load_ghost(g: &mut Game) {
-    let txt = std::fs::read_to_string(ghost_file(g)).unwrap_or_default();
+    let txt = read_small(ghost_file(g)).unwrap_or_default();
     g.set_ghost(turbocursa::ghost::Ghost::decode(&txt));
 }
 
 /// Keeps the faster of the stored ghost and the finished run.
 fn save_ghost(g: &Game) {
     let Some(new) = g.make_ghost() else { return };
-    let old = std::fs::read_to_string(ghost_file(g))
+    let old = read_small(ghost_file(g))
         .ok()
         .and_then(|t| turbocursa::ghost::Ghost::decode(&t));
     if old.as_ref().is_none_or(|o| new.beats(o)) {
-        let _ = std::fs::write(ghost_file(g), new.encode());
+        let _ = write_atomic(ghost_file(g), new.encode());
     }
 }
 
@@ -116,11 +142,11 @@ fn import_ghost(gh: &turbocursa::ghost::Ghost) {
         .map(std::path::PathBuf::from)
         .unwrap_or_default()
         .join(format!(".turbocursa_ghost_{}_{}", gh.mode, gh.seed));
-    let old = std::fs::read_to_string(&path)
+    let old = read_small(&path)
         .ok()
         .and_then(|t| turbocursa::ghost::Ghost::decode(&t));
     if old.as_ref().is_none_or(|o| gh.beats(o)) {
-        let _ = std::fs::write(&path, gh.encode());
+        let _ = write_atomic(&path, gh.encode());
     }
 }
 
@@ -156,9 +182,8 @@ fn main() {
         .map(std::path::PathBuf::from)
         .unwrap_or_default()
         .join(".turbocursa_settings");
-    let mut settings = turbocursa::settings::Settings::decode(
-        &std::fs::read_to_string(&set_path).unwrap_or_default(),
-    );
+    let mut settings =
+        turbocursa::settings::Settings::decode(&read_small(&set_path).unwrap_or_default());
     if let Some(m) = arg("--music").and_then(|s| s.parse().ok()) {
         settings.music = m;
     }
@@ -182,18 +207,17 @@ fn main() {
     }
     let mut settings = settings.sanitized();
     settings.apply();
-    let _ = std::fs::write(&set_path, settings.encode());
+    let _ = write_atomic(&set_path, settings.encode());
     // garage: coins from play buy upgrades (--garage shows them, --buy 0-3 buys the next level)
     let gar_path = std::env::var("HOME")
         .map(std::path::PathBuf::from)
         .unwrap_or_default()
         .join(".turbocursa_garage");
-    let mut garage =
-        turbocursa::garage::Garage::decode(&std::fs::read_to_string(&gar_path).unwrap_or_default());
+    let mut garage = turbocursa::garage::Garage::decode(&read_small(&gar_path).unwrap_or_default());
     if let Some(i) = arg("--buy").and_then(|s| s.parse::<usize>().ok()) {
         if garage.buy(i) {
             println!("bought: {}", turbocursa::garage::NAMES[i]);
-            let _ = std::fs::write(&gar_path, garage.encode());
+            let _ = write_atomic(&gar_path, garage.encode());
         } else {
             eprintln!("cannot buy that upgrade (not enough coins or already maxed)");
         }
@@ -297,18 +321,18 @@ fn main() {
     // --ghost FILE|TG1;...: import a friend's ghost (it becomes the ghost of that stage if faster);
     // --ghost-export seed [mode]: print the stored ghost of a stage as a shareable code
     if let Some(src) = arg("--ghost") {
-        let txt = std::fs::read_to_string(&src).unwrap_or(src);
+        let txt = read_small(&src).unwrap_or(src);
         match turbocursa::ghost::Ghost::decode(&txt) {
             Some(gh) => {
                 let path = std::env::var("HOME")
                     .map(std::path::PathBuf::from)
                     .unwrap_or_default()
                     .join(format!(".turbocursa_ghost_{}_{}", gh.mode, gh.seed));
-                let old = std::fs::read_to_string(&path)
+                let old = read_small(&path)
                     .ok()
                     .and_then(|t| turbocursa::ghost::Ghost::decode(&t));
                 if old.as_ref().is_none_or(|o| gh.beats(o)) {
-                    let _ = std::fs::write(&path, gh.encode());
+                    let _ = write_atomic(&path, gh.encode());
                     println!(
                         "ghost imported: stage {} mode {} ({:.1} s)",
                         gh.seed, gh.mode, gh.secs
@@ -327,7 +351,7 @@ fn main() {
             .map(std::path::PathBuf::from)
             .unwrap_or_default()
             .join(format!(".turbocursa_ghost_{mode}_{sd}"));
-        match std::fs::read_to_string(path) {
+        match read_small(path) {
             Ok(t) => println!("{}", t.trim()),
             Err(_) => eprintln!("no ghost stored for that stage"),
         }
@@ -423,9 +447,8 @@ fn main() {
     let prof_path = std::env::var("HOME")
         .map(|h| std::path::PathBuf::from(h).join(".turbocursa_profile"))
         .unwrap_or_else(|_| std::path::PathBuf::from("turbocursa_profile.sav"));
-    let mut profile = turbocursa::profile::Profile::decode(
-        &std::fs::read_to_string(&prof_path).unwrap_or_default(),
-    );
+    let mut profile =
+        turbocursa::profile::Profile::decode(&read_small(&prof_path).unwrap_or_default());
     profile.begin_day(turbocursa::profile::today());
     if !profile.unlocked(class_i.get()) {
         eprintln!(
@@ -473,7 +496,7 @@ fn main() {
             m.set_rank(rank);
             Mode::Multi(Box::new(m))
         } else if kind == Launch::Career {
-            let saved = std::fs::read_to_string(&save_path).ok();
+            let saved = read_small(&save_path).ok();
             Mode::Career(Box::new(CareerApp::new(s, saved.as_deref())))
         } else if let (Launch::Champ, Some(c)) = (kind, champ_cfg) {
             Mode::Rally(Box::new(c.app()))
@@ -558,7 +581,14 @@ fn main() {
     if arg("--code").is_some() && stage_code.is_none() {
         eprintln!("invalid stage code");
     }
-    let mut mode = if design {
+    let mut demo = args
+        .iter()
+        .any(|a| a == "--demo")
+        .then(turbocursa::ace::Demo::new);
+    let mut mode = if let Some(d) = &demo {
+        println!("demo: {} stages", d.total());
+        Mode::Single(Box::new(d.current()))
+    } else if design {
         Mode::Design(Box::new(turbocursa::design::DesignApp::new(stage_code)))
     } else if let Some(c) = stage_code {
         let mut g = c.game();
@@ -627,6 +657,12 @@ fn main() {
         };
         let enter = win.is_key_pressed(Key::Enter, KeyRepeat::No) || ps.enter;
         let back = win.is_key_pressed(Key::Backspace, KeyRepeat::No) || ps.back;
+        // the demo plays by itself: Enter / Backspace must not start a normal game under the pilot
+        let (enter, back) = if demo.is_some() {
+            (false, false)
+        } else {
+            (enter, back)
+        };
         if back && design && matches!(mode, Mode::Single(_)) {
             mode = Mode::Design(Box::new(turbocursa::design::DesignApp::new(stage_code)));
         } else if back && pick_on && !design && matches!(mode, Mode::Single(_) | Mode::Versus(_)) {
@@ -650,7 +686,7 @@ fn main() {
                                 turbocursa::codes::Code::Paint(l) => {
                                     settings.livery = *l;
                                     settings.apply();
-                                    let _ = std::fs::write(&set_path, settings.encode());
+                                    let _ = write_atomic(&set_path, settings.encode());
                                 }
                                 turbocursa::codes::Code::Ghost(g) => import_ghost(g),
                                 _ => {}
@@ -675,14 +711,14 @@ fn main() {
                 if let Some(ex) = p.take_extras() {
                     settings = ex.settings();
                     settings.apply();
-                    let _ = std::fs::write(&set_path, settings.encode());
+                    let _ = write_atomic(&set_path, settings.encode());
                     pack_n.set((ex.pack > 0).then_some(ex.pack as usize));
                     pack_inv.set(ex.inverted);
                     players.set(ex.players as usize);
                     if ex.garage != garage {
                         garage = ex.garage;
                         garage.apply();
-                        let _ = std::fs::write(&gar_path, garage.encode());
+                        let _ = write_atomic(&gar_path, garage.encode());
                     }
                 }
                 if let Some(ch) = ch {
@@ -724,7 +760,7 @@ fn main() {
                 c.update(dt, &p1, enter, back);
                 c.render(&mut fb);
                 if let Some(s) = c.take_save() {
-                    let _ = std::fs::write(&save_path, s);
+                    let _ = write_atomic(&save_path, s);
                 }
                 #[cfg(feature = "audio")]
                 if let Some(a) = &audio {
@@ -790,10 +826,21 @@ fn main() {
                 if win.is_key_pressed(Key::T, KeyRepeat::No) || ps.manual {
                     g.toggle_manual();
                 }
+                let p1 = if let Some(d) = demo.as_mut() {
+                    let (i, next) = d.step(g, dt);
+                    if let Some(n) = next {
+                        **g = n;
+                        println!("demo: stage {}/{}", d.idx % d.total() + 1, d.total());
+                    }
+                    i
+                } else {
+                    p1
+                };
                 g.update(dt, &p1);
                 if g.state == State::Playing {
                     session += dt;
-                } else if !counted {
+                } else if !counted && demo.is_none() {
+                    // (a demo run is never recorded: no XP, coins, records or ghosts)
                     counted = true;
                     finished_game = Some(GameResult::from_game(g));
                     last_score = Some((g.score, g.elapsed));
@@ -879,7 +926,7 @@ fn main() {
                 }
                 if c > 0 {
                     println!("+{c} coins (total {})", garage.coins);
-                    let _ = std::fs::write(&gar_path, garage.encode());
+                    let _ = write_atomic(&gar_path, garage.encode());
                 }
             }
             let mut daily_msg = String::new();
@@ -901,7 +948,7 @@ fn main() {
                     daily_msg = "  (daily: practice run)".into();
                 }
             }
-            let _ = std::fs::write(&prof_path, profile.encode());
+            let _ = write_atomic(&prof_path, profile.encode());
             win.set_title(&format!(
                 "TURBOCURSA  +{} XP  rank {}{}{}{}",
                 gain.xp,
@@ -926,7 +973,7 @@ fn main() {
         if !typing_code && win.is_key_pressed(Key::C, KeyRepeat::No) {
             let name = format!("turbocursa_photo_{}.png", photo_n);
             photo_n += 1;
-            match std::fs::write(&name, turbocursa::png::encode(&fb, W, H)) {
+            match write_atomic(&name, turbocursa::png::encode(&fb, W, H)) {
                 Ok(()) => win.set_title(&format!("TURBOCURSA  saved {name}")),
                 Err(e) => win.set_title(&format!("TURBOCURSA  photo failed: {e}")),
             }

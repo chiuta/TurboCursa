@@ -40,8 +40,10 @@ fn main() {
         }
     }
     for b in 0..NB as u8 {
-        let mut l = Layout::default();
-        l.biomes = [b; 4];
+        let l = Layout {
+            biomes: [b; 4],
+            ..Layout::default()
+        };
         rows.push((
             format!("biome {b}"),
             cost(StageCode {

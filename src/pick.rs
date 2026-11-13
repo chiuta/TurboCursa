@@ -40,7 +40,7 @@ pub struct ProfileInfo {
 }
 
 /// The options page of the start screen: everything that used to need a command-line flag.
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
 pub struct Extras {
     /// 0 normal, 1 calm, 2 drive, 3 off
     pub music: u8,
@@ -57,22 +57,6 @@ pub struct Extras {
     pub web: bool,
     /// the game runs with the stock car (daily, weekly, shared stage): upgrades are not for sale
     pub stock: bool,
-}
-
-impl Default for Extras {
-    fn default() -> Extras {
-        Extras {
-            music: 0,
-            mph: false,
-            keys: 0,
-            pack: 0,
-            inverted: false,
-            players: 0,
-            garage: crate::garage::Garage::default(),
-            web: false,
-            stock: false,
-        }
-    }
 }
 
 const PACK_STEPS: [u8; 4] = [0, 8, 12, 16];
@@ -516,15 +500,8 @@ impl PickApp {
             0xFFD23C,
         );
         fill(fb, 10, 20, 110, 25, 0x1C2444);
-        if i.next > 0 {
-            fill(
-                fb,
-                10,
-                20,
-                10 + (100 * i.xp.min(i.next) / i.next) as i32,
-                25,
-                0x3CDC78,
-            );
+        if let Some(w) = (100 * i.xp.min(i.next)).checked_div(i.next) {
+            fill(fb, 10, 20, 10 + w as i32, 25, 0x3CDC78);
         }
         if i.streak > 1 {
             tx(

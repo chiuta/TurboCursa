@@ -96,6 +96,7 @@ pub struct Segment {
     pub props: Vec<Sprite>,
 }
 
+#[derive(Clone)]
 pub struct Track {
     pub segs: Vec<Segment>,
     /// Segment indices of mid-stage checkpoints.
