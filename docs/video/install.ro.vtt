@@ -1,0 +1,25 @@
+WEBVTT
+
+1
+00:00:01.760 --> 00:00:04.300
+Pagina TURBOCURSA: joci imediat în browser, fără nicio instalare.
+
+2
+00:00:04.770 --> 00:00:10.700
+Varianta pentru browser e un singur fișier HTML care merge și offline. O instalezi din meniul browserului.
+
+3
+00:00:11.270 --> 00:00:15.700
+Aplicația nativă în Rust pentru Windows, macOS și Linux: o singură comandă sau descărcare directă.
+
+4
+00:00:16.290 --> 00:00:23.900
+Linkuri directe la ultima versiune: browser, Windows, macOS (Apple Silicon și Intel), Linux, sursă și sume de control SHA-256.
+
+5
+00:00:24.550 --> 00:00:34.200
+Pe Linux și macOS, o singură comandă descarcă, verifică suma de control și instalează.
+
+6
+00:00:34.300 --> 00:00:43.060
+Apoi pornești jocul cu turbocursa. Pe Windows folosești linia PowerShell de pe pagină.

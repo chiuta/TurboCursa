@@ -1,0 +1,25 @@
+WEBVTT
+
+1
+00:00:01.760 --> 00:00:04.300
+La página de TURBOCURSA: juega ya en el navegador, sin instalar nada.
+
+2
+00:00:04.770 --> 00:00:10.700
+La versión para navegador es un solo archivo HTML que funciona también sin conexión. Se instala desde el menú del navegador.
+
+3
+00:00:11.270 --> 00:00:15.700
+La app nativa en Rust para Windows, macOS y Linux: un solo comando o descarga directa.
+
+4
+00:00:16.290 --> 00:00:23.900
+Enlaces directos a la última versión: navegador, Windows, macOS (Apple Silicon e Intel), Linux, código fuente y sumas SHA-256.
+
+5
+00:00:24.550 --> 00:00:34.200
+En Linux y macOS, un solo comando descarga, verifica la suma y instala.
+
+6
+00:00:34.300 --> 00:00:43.060
+Luego ejecútalo con turbocursa. En Windows usa la línea de PowerShell de la página.

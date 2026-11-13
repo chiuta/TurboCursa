@@ -1,0 +1,25 @@
+WEBVTT
+
+1
+00:00:01.760 --> 00:00:04.300
+A TURBOCURSA oldala: azonnal játszhatsz böngészőben, telepítés nélkül.
+
+2
+00:00:04.770 --> 00:00:10.700
+A böngészős változat egyetlen HTML-fájl, offline is működik. A böngésző menüjéből telepíthető.
+
+3
+00:00:11.270 --> 00:00:15.700
+A natív Rust-alkalmazás Windowsra, macOS-re és Linuxra: egy parancs vagy közvetlen letöltés.
+
+4
+00:00:16.290 --> 00:00:23.900
+Közvetlen linkek a legújabb kiadáshoz: böngésző, Windows, macOS (Apple Silicon és Intel), Linux, forráskód és SHA-256 ellenőrző összegek.
+
+5
+00:00:24.550 --> 00:00:34.200
+Linuxon és macOS-en egy parancs letölt, ellenőrzi az összeget és telepít.
+
+6
+00:00:34.300 --> 00:00:43.060
+Utána indítsd a turbocursa paranccsal. Windowson használd az oldalon lévő PowerShell-sort.

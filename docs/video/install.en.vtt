@@ -1,0 +1,25 @@
+WEBVTT
+
+1
+00:00:01.760 --> 00:00:04.300
+The TURBOCURSA page: play right now in the browser, nothing to install.
+
+2
+00:00:04.770 --> 00:00:10.700
+The browser version is one HTML file that also works offline. Install it from your browser's menu.
+
+3
+00:00:11.270 --> 00:00:15.700
+The native Rust app for Windows, macOS and Linux: one command, or a direct download.
+
+4
+00:00:16.290 --> 00:00:23.900
+Direct links to the latest release: browser, Windows, macOS (Apple Silicon and Intel), Linux, source and SHA-256 checksums.
+
+5
+00:00:24.550 --> 00:00:34.200
+On Linux and macOS one command downloads, verifies the checksum and installs.
+
+6
+00:00:34.300 --> 00:00:43.060
+Then start it with turbocursa. On Windows, use the PowerShell line from the page.
