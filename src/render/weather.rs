@@ -873,6 +873,15 @@ pub(super) fn draw_hud(fb: &mut [u32], g: &Game) {
         }
         State::Finished => {
             rect_a(fb, 0.0, 0.0, vw() as f32, hf, rgb(0, 0, 10), 0.3, hf);
+            let pb = crate::access::prev_best();
+            if pb > 0 && g.score > pb {
+                let gold = if (g.elapsed * 4.0) as i32 % 2 == 0 || crate::access::calm() {
+                    rgb(255, 235, 120)
+                } else {
+                    rgb(255, 170, 40)
+                };
+                text_center(fb, k(50.0), i18n::tr(S::NewBest), 2, gold);
+            }
             text_center(fb, k(66.0), i18n::tr(S::StageClear), 3, yellow);
             text_center(
                 fb,

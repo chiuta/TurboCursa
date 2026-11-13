@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.7.1
+
+### Added
+- **NEW BEST!** banner on the stage-clear screen when the run beats your previous best score of that mode (translated into all 8 languages; native best scores live in `~/.turbocursa_best`, the browser reuses its stored best). Demo runs never show or record it.
+
 ## 1.7.0
 
 ### Added

@@ -989,7 +989,7 @@ dependencies = [
 
 [[package]]
 name = "turbocursa"
-version = "1.7.0"
+version = "1.7.1"
 dependencies = [
  "cpal",
  "minifb",

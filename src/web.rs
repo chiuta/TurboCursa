@@ -97,6 +97,12 @@ pub extern "C" fn set_filter(i: u32) {
     crate::access::set_filter(i as usize);
 }
 
+/// The player's best score before this run (0 = none), for the NEW BEST banner.
+#[no_mangle]
+pub extern "C" fn set_best(v: u32) {
+    crate::access::set_prev_best(v);
+}
+
 /// Calm mode (reduced motion): 1 on, 0 off.
 #[no_mangle]
 pub extern "C" fn set_calm(on: u32) {

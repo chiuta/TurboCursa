@@ -104,3 +104,25 @@ fn calm_mode_removes_the_screen_shake() {
     assert_ne!(still, shaken, "the shake moves the picture");
     assert_eq!(still, calm, "calm mode draws the same picture as no shake");
 }
+
+#[test]
+fn new_best_banner_only_when_the_old_best_is_beaten() {
+    let mut g = driving();
+    g.state = State::Finished;
+    g.score = 500;
+    let draw = |pb: u32| {
+        turbocursa::access::set_prev_best(pb);
+        let mut f = vec![0u32; turbocursa::W * turbocursa::H];
+        turbocursa::render::render(&g, &mut f);
+        f
+    };
+    let none = draw(0);
+    let beaten = draw(100);
+    let not_beaten = draw(900);
+    turbocursa::access::set_prev_best(0);
+    assert_ne!(none, beaten, "a beaten best shows the banner");
+    assert_eq!(none, not_beaten, "no banner when the old best stands");
+    for i in 0..8u32 {
+        assert!(!i18n::tr_in(Lang::from_index(i), S::NewBest).is_empty());
+    }
+}

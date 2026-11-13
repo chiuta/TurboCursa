@@ -1,5 +1,5 @@
 // TURBOCURSA service worker: makes the game installable and playable offline.
-const CACHE = "turbocursa-1.7.0";
+const CACHE = "turbocursa-1.7.1";
 const FILES = ["./", "index.html", "turbocursa.html", "manifest.webmanifest", "icon-192.png", "icon-512.png", "icon-maskable-512.png"];
 const MAX_ENTRIES = 32;
 // one cache entry per path: "?code=...", "?daily" and the like all share the page itself

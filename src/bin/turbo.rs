@@ -1,4 +1,4 @@
-//! Native window front-end (TURBOCURSA 1.7).
+//! Native window front-end (TURBOCURSA 1.7.1).
 //!   cargo run --release --features native --bin turbo [-- --versus | --cpu | --career | --demo | --mode NAME | --car RO] [--class sports|city|truck|bus|moped|...] [--level easy|normal|hard|expert|insane] [--weather clear|rain|storm|fog|snow|blizzard|sandstorm|hail|glaze|heatwave|ash|auto] [--surface asphalt|icelake|saltflat|lava|dunes|bog|auto] [--time auto|dawn|day|dusk|night] [--tyre auto|road|rain|snow|offroad] [--setup balanced|sprint|downforce|economy] [--rank N] [--colorblind protan|deutan|tritan|contrast] [--assist 0-3] [--slow 40-100] [--large] [--rally] [--champ TCC1-...|7|10|15] [--tour] [--ghost FILE|TG1;...] [--ghost-export SEED] [--pack 8-16 [--inverted] [--qualify]] [--players 3|4 [--humans N]] [--garage] [--buy 0-3] [--weekly] [--music 0-3] [--mph] [--keys 0-3] [--secret CODE] [--daily] [--design] [--code TCS1-...] [--seed N] [--lang xx]
 //!   modes: campaign timetrial endless rush collector slalom mirror blackout zen (or 0-8)
 //! Photo mode: P on/off (arrows move the camera, Up/Down scrub, Space+Up/Down height), H shows the HUD, C saves a PNG.
@@ -292,6 +292,19 @@ fn main() {
         .map(std::path::PathBuf::from)
         .unwrap_or_default()
         .join(".turbocursa_garage");
+    // best score per mode (index = mode number), for the NEW BEST banner
+    let best_path = std::env::var("HOME")
+        .map(std::path::PathBuf::from)
+        .unwrap_or_default()
+        .join(".turbocursa_best");
+    let mut best: Vec<u32> = read_small(&best_path)
+        .unwrap_or_default()
+        .split_whitespace()
+        .take(16)
+        .map(|w| w.parse().unwrap_or(0))
+        .collect();
+    best.resize(16, 0);
+    let mut run_prev = 0u32;
     let mut garage = turbocursa::garage::Garage::decode(&read_small(&gar_path).unwrap_or_default());
     if let Some(i) = arg("--buy").and_then(|s| s.parse::<usize>().ok()) {
         if garage.buy(i) {
@@ -936,15 +949,23 @@ fn main() {
                     p1
                 };
                 g.update(dt, &p1);
+                let bi = g.mode.index() as usize % 16;
                 if g.state == State::Playing {
+                    run_prev = best[bi];
                     session += dt;
                 } else if !counted && demo.is_none() {
+                    if g.state == State::Finished && g.score > best[bi] {
+                        best[bi] = g.score;
+                        let line: Vec<String> = best.iter().map(u32::to_string).collect();
+                        let _ = write_atomic(&best_path, line.join(" "));
+                    }
                     // (a demo run is never recorded: no XP, coins, records or ghosts)
                     counted = true;
                     finished_game = Some(GameResult::from_game(g));
                     last_score = Some((g.score, g.elapsed));
                     save_ghost(g);
                 }
+                turbocursa::access::set_prev_best(if demo.is_some() { 0 } else { run_prev });
                 render::render(g, &mut fb);
                 #[cfg(feature = "audio")]
                 if let Some(a) = &audio {

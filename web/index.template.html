@@ -169,6 +169,7 @@ WebAssembly.instantiate(bytes,{}).then(({instance})=>{
  wasm=e;
  (()=>{let idx=-1;if(carQ){for(let i=0;i<e.country_count();i++){const v=e.country_code(i);if(String.fromCharCode(v>>8,v&255)===carQ){idx=i;break}}}e.set_car(idx>=0?idx:0xFFFFFFFF)})();
  e.set_class(clQ);e.set_level(lvQ);e.set_weather(wxQ<0?255:wxQ);e.set_surface(sfQ<0?255:sfQ);e.set_pick(!q.has("daily")&&modeCode!==11&&!q.has("class")&&!q.has("level")&&!q.has("weather")&&!q.has("surface")&&!q.has("nopick")?1:0);
+ try{e.set_best(bestVal())}catch(x){}
  try{e.set_calm(/[?&]calm\b/.test(location.search)||matchMedia("(prefers-reduced-motion: reduce)").matches?1:0)}catch(x){}
  e.set_filter(acQ);e.set_assist(asQ);e.set_slow(slowQ);e.set_time(tmQ);e.set_tyre(tyQ);e.set_setup(suQ);e.set_rank(rkQ<0?0xFFFFFFFF:rkQ);
  e.set_today(TODAY);
@@ -315,6 +316,7 @@ WebAssembly.instantiate(bytes,{}).then(({instance})=>{
  (function loop(t){if(dead)return;try{const dt=Math.min(Math.max((t-last)/1000,0),.05);last=t;pollPad();
   const p=e.frame(dt);if(!img||imgBuf!==e.memory.buffer||imgPtr!==p){imgBuf=e.memory.buffer;imgPtr=p;img=new ImageData(new Uint8ClampedArray(imgBuf,p,W*H*4),W,H)}ctx.putImageData(img,0,0);
   const st=e.state_code();
+  if(st!==prevState&&st!==2)e.set_best(bestVal());
   if(st!==prevState&&st===2){const s=e.score();if(s>bestVal()){try{localStorage.setItem(bestKey,String(s))}catch(x){}applyLang()}}
   prevState=st;
   {const n=e.ghost_save();if(n){try{const p=e.buf_ptr(n);const code=new TextDecoder().decode(new Uint8Array(e.memory.buffer,p,n)),f=code.split(";");if(f.length>=3&&/^\d+$/.test(f[1]+f[2]))localStorage.setItem("turbocursa.ghost."+f[2]+"."+f[1],code)}catch(x){}}}

@@ -12,6 +12,16 @@ pub const ASSIST_MAX: u8 = 3;
 thread_local! {
     static FILTER: Cell<u8> = const { Cell::new(0) };
     static CALM: Cell<bool> = const { Cell::new(false) };
+    static PREV_BEST: Cell<u32> = const { Cell::new(0) };
+}
+
+/// The best score before the current run (0 = none known): a finished stage beating it says NEW BEST.
+pub fn set_prev_best(v: u32) {
+    PREV_BEST.with(|c| c.set(v));
+}
+
+pub fn prev_best() -> u32 {
+    PREV_BEST.with(|c| c.get())
 }
 
 /// Calm mode (reduced motion): no screen shake, no strobing police text, soft lightning flashes.

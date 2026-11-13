@@ -75,9 +75,10 @@ pub enum S {
     Ring,
     Paused,
     PauseHint,
+    NewBest,
 }
 
-const N: usize = 25;
+const N: usize = 26;
 type Row = [&'static str; N];
 
 // order: Time Kmh Turbo TimeUp Score PressEnter StageClear Passed({} = count) Winner SecondPlace Draw Rematch First Second Go Checkpoint StageClearBang
@@ -107,6 +108,7 @@ const EN: Row = [
     "RING!",
     "PAUSED",
     "ESC: RESUME   ENTER: RESTART",
+    "NEW BEST!",
 ];
 const RO: Row = [
     "TIMP",
@@ -134,6 +136,7 @@ const RO: Row = [
     "INEL!",
     "PAUZĂ",
     "ESC: CONTINUĂ   ENTER: REÎNCEPE",
+    "SCOR NOU!",
 ];
 const FR: Row = [
     "TEMPS",
@@ -161,6 +164,7 @@ const FR: Row = [
     "ANNEAU!",
     "PAUSE",
     "ÉCHAP : REPRENDRE   ENTRÉE : REJOUER",
+    "NOUVEAU RECORD !",
 ];
 const IT: Row = [
     "TEMPO",
@@ -188,6 +192,7 @@ const IT: Row = [
     "ANELLO!",
     "PAUSA",
     "ESC: RIPRENDI   INVIO: RIPROVA",
+    "NUOVO RECORD!",
 ];
 const ES: Row = [
     "TIEMPO",
@@ -215,6 +220,7 @@ const ES: Row = [
     "ANILLO!",
     "PAUSA",
     "ESC: SEGUIR   INTRO: REINTENTAR",
+    "NUEVO RÉCORD!",
 ];
 const PT: Row = [
     "TEMPO",
@@ -242,6 +248,7 @@ const PT: Row = [
     "ANEL!",
     "PAUSA",
     "ESC: CONTINUAR   ENTER: REPETIR",
+    "NOVO RECORDE!",
 ];
 const DE: Row = [
     "ZEIT",
@@ -269,6 +276,7 @@ const DE: Row = [
     "RING!",
     "PAUSE",
     "ESC: WEITER   ENTER: NEUSTART",
+    "NEUER REKORD!",
 ];
 const HU: Row = [
     "IDŐ",
@@ -296,6 +304,7 @@ const HU: Row = [
     "GYŰRŰ!",
     "SZÜNET",
     "ESC: FOLYTAT   ENTER: ÚJRA",
+    "ÚJ REKORD!",
 ];
 
 const TABLE: [&Row; 8] = [&EN, &RO, &FR, &IT, &ES, &PT, &DE, &HU];
