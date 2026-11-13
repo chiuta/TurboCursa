@@ -127,8 +127,8 @@ impl Gamepad {
                         break;
                     }
                     Ok(n) => {
-                        for ev in buf[..n - n % 8].chunks_exact(8) {
-                            self.dec.feed(ev.try_into().unwrap());
+                        for ev in buf[..n - n % 8].as_chunks::<8>().0 {
+                            self.dec.feed(ev);
                         }
                     }
                     Err(e) if e.kind() == std::io::ErrorKind::WouldBlock => break,

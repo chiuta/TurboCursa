@@ -573,8 +573,7 @@ impl Cup {
                     .map_or(rows.len(), |i| i + 1);
                 let back = pos <= 2 && rows[pos - 1].time.is_some();
                 self.lives = self.lives.saturating_sub(1);
-                let out;
-                if back {
+                let out = if back {
                     for r in rows.iter().take(2) {
                         self.alive.push(r.id);
                     }
@@ -584,11 +583,11 @@ impl Cup {
                     if self.round + 1 == self.rounds() {
                         self.final_reached = true;
                     }
-                    out = Outcome::Revived;
+                    Outcome::Revived
                 } else {
                     self.phase = Phase::Lost;
-                    out = Outcome::Eliminated { chance: false };
-                }
+                    Outcome::Eliminated { chance: false }
+                };
                 Some(Report {
                     table: rows,
                     player_pos: pos,
