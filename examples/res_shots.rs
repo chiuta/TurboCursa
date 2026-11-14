@@ -2,7 +2,6 @@
 //!   res_shots cand            -> /tmp/cand/NN.png (640x400 candidates) to choose scenes from
 //!   res_shots shot SEED WEATHER TIME MODE SECONDS NAME  -> /tmp/shots/NAME_<res>.png for SD and every Res
 use turbocursa::ace::Ace;
-use turbocursa::game::*;
 use turbocursa::hd::{Res, Upscaler};
 use turbocursa::share::StageCode;
 use turbocursa::{render, H, W};
@@ -32,8 +31,7 @@ fn main() {
     std::fs::create_dir_all("/tmp/cand").unwrap();
     std::fs::create_dir_all("/tmp/shots").unwrap();
     if a[1] == "cand" {
-        let mut n = 0;
-        for (seed, weather, time, mode) in [
+        for (n, (seed, weather, time, mode)) in [
             (3u32, 1u8, 2u8, 0u8),
             (8, 1, 3, 0),
             (12, 1, 4, 0),
@@ -52,7 +50,10 @@ fn main() {
             (50, 1, 1, 1),
             (61, 1, 2, 1),
             (70, 1, 3, 4),
-        ] {
+        ]
+        .into_iter()
+        .enumerate()
+        {
             let fb = drive(seed, weather, time, mode, 22.0);
             std::fs::write(
                 format!("/tmp/cand/{n:02}.png"),
@@ -60,7 +61,6 @@ fn main() {
             )
             .unwrap();
             println!("{n:02} seed {seed} weather {weather} time {time} mode {mode}");
-            n += 1;
         }
     } else {
         let p = |i: usize| a[i].parse::<f32>().unwrap();
