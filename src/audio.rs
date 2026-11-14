@@ -288,6 +288,59 @@ fn special(kind: u8, ts: f32, sr: f32, ph: &mut f32, lp: &mut f32, n: f32) -> f3
             *lp += 0.1 * (saw(ph, 75.0) - *lp);
             *lp * (-beat * 6.0).exp() * 2.2
         }
+        12 => {
+            // garbage truck: low diesel and the hiss of the hydraulics
+            *lp += 0.07 * (saw(ph, 48.0) - *lp);
+            *lp * 1.3 + (n - *lp) * if gate(2.2, 0.28) { 0.35 } else { 0.0 }
+        }
+        13 => {
+            // city bus: diesel, air-brake sigh and a stop chime
+            *lp += 0.07 * (saw(ph, 52.0) - *lp);
+            *lp * 1.2
+                + if gate(3.0, 0.1) { (n - *lp) * 0.5 } else { 0.0 }
+                + if gate(6.0, 0.05) {
+                    tone(1480.0) * 0.35
+                } else {
+                    0.0
+                }
+        }
+        14 => {
+            // fuel tanker: very deep rumble with a slow slosh
+            *lp += 0.05 * (saw(ph, 36.0) - *lp);
+            *lp * (1.4 + 0.35 * (TAU * 0.7 * ts).sin())
+        }
+        15 => {
+            // concrete mixer: grinding drum, rhythmic with the rotation
+            *lp += 0.06 * (saw(ph, 50.0) - *lp);
+            *lp * 1.2 + (n - *lp) * 0.22 * (0.6 + 0.4 * (TAU * 1.5 * ts).sin())
+        }
+        16 => {
+            // mail van: light engine and a two-note chime
+            *lp += 0.1 * (saw(ph, 95.0) - *lp);
+            *lp * 1.1
+                + if gate(6.0, 0.1) {
+                    tone(523.0) * 0.4
+                } else if (ts / 6.0).fract() > 0.12 && (ts / 6.0).fract() < 0.22 {
+                    tone(659.0) * 0.4
+                } else {
+                    0.0
+                }
+        }
+        17 => {
+            // limousine: smooth, low V8 with a soft second harmonic
+            *lp += 0.06 * (saw(ph, 55.0) - *lp);
+            *lp * 1.3 + tone(110.0) * 0.1
+        }
+        18 => {
+            // camper: tired engine and a rattle at eight beats a second
+            *lp += 0.08 * (saw(ph, 66.0) - *lp);
+            *lp * 1.2 + (n - *lp) * if gate(0.125, 0.3) { 0.12 } else { 0.0 }
+        }
+        19 => {
+            // courier motorcycle: high buzzing engine with a rising whine
+            *lp += 0.3 * (saw(ph, 180.0) - *lp);
+            *lp * 0.9 + tone(360.0) * 0.12 * ((TAU * 5.0 * ts).sin() * 0.5 + 0.5)
+        }
         _ => 0.0,
     }
 }

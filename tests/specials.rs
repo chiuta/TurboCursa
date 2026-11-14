@@ -14,7 +14,7 @@ fn game() -> Game {
 
 #[test]
 fn every_special_vehicle_is_drawn_and_leaves_the_road() {
-    for kind in 0..=11u8 {
+    for kind in 0..=19u8 {
         let mut g = game();
         let inp = Input::default();
         for _ in 0..120 {
@@ -69,7 +69,7 @@ fn every_special_vehicle_has_its_own_audible_sound() {
     };
     let (quiet, _) = energy(255);
     let mut seen: Vec<Vec<f32>> = Vec::new();
-    for kind in 0..=11u8 {
+    for kind in 0..=19u8 {
         let (e, w) = energy(kind);
         assert!(
             e > quiet * 1.05,

@@ -887,7 +887,8 @@ pub(super) fn draw_emergency(
 }
 
 /// The other special vehicles seen from behind (kinds 2..=11, see `Emerg`): snowplough, tow truck,
-/// road-works truck, street sweeper, cash van, school bus, taxi, army truck, ice-cream van, tractor.
+/// road-works truck, street sweeper, cash van, school bus, taxi, army truck, ice-cream van, tractor,
+/// garbage truck, city bus, fuel tanker, concrete mixer, mail van, limousine, camper, courier motorcycle.
 pub(super) fn draw_other_special(
     fb: &mut [u32],
     cx: f32,
@@ -1216,6 +1217,314 @@ pub(super) fn draw_other_special(
                 clip,
             );
             beacon(fb, cx, by - h * 1.15, w);
+        }
+        12 => {
+            // garbage truck: green body, tall rear hopper with an orange stripe and a lift bar
+            let w = w * 1.25;
+            draw_car(fb, cx, by, w, rgb(34, 120, 84), clip, false, true);
+            let h = w * 0.58;
+            rect(
+                fb,
+                cx - w * 0.46,
+                by - h * 1.3,
+                cx + w * 0.46,
+                by - h * 0.62,
+                rgb(60, 66, 72),
+                clip,
+            );
+            rect(
+                fb,
+                cx - w * 0.46,
+                by - h * 0.98,
+                cx + w * 0.46,
+                by - h * 0.88,
+                rgb(255, 130, 20),
+                clip,
+            );
+            rect(
+                fb,
+                cx - w * 0.3,
+                by - h * 0.62,
+                cx + w * 0.3,
+                by - h * 0.5,
+                dark,
+                clip,
+            );
+            beacon(fb, cx, by - h * 1.35, w);
+        }
+        13 => {
+            // city bus: tall blue and white body, a band of windows and a lit destination sign
+            let w = w * 1.4;
+            draw_car(fb, cx, by, w, rgb(30, 90, 190), clip, false, true);
+            let h = w * 0.58;
+            rect(
+                fb,
+                cx - w * 0.47,
+                by - h * 1.5,
+                cx + w * 0.47,
+                by - h * 0.62,
+                rgb(236, 240, 246),
+                clip,
+            );
+            rect(
+                fb,
+                cx - w * 0.43,
+                by - h * 1.32,
+                cx + w * 0.43,
+                by - h * 0.9,
+                rgb(120, 170, 220),
+                clip,
+            );
+            rect(
+                fb,
+                cx - w * 0.2,
+                by - h * 1.46,
+                cx + w * 0.2,
+                by - h * 1.36,
+                amber,
+                clip,
+            );
+            rect(
+                fb,
+                cx - w * 0.47,
+                by - h * 0.74,
+                cx + w * 0.47,
+                by - h * 0.66,
+                rgb(30, 90, 190),
+                clip,
+            );
+        }
+        14 => {
+            // fuel tanker: silver tank with a hazard diamond and red bands
+            let w = w * 1.3;
+            draw_car(fb, cx, by, w, rgb(196, 200, 210), clip, false, true);
+            let h = w * 0.58;
+            ellipse(
+                fb,
+                cx,
+                by - h * 0.98,
+                w * 0.46,
+                h * 0.5,
+                rgb(214, 218, 226),
+                clip,
+            );
+            rect(
+                fb,
+                cx - w * 0.46,
+                by - h * 1.0,
+                cx + w * 0.46,
+                by - h * 0.93,
+                rgb(200, 40, 40),
+                clip,
+            );
+            rect(
+                fb,
+                cx - w * 0.07,
+                by - h * 1.2,
+                cx + w * 0.07,
+                by - h * 1.06,
+                rgb(250, 190, 20),
+                clip,
+            );
+            rect(
+                fb,
+                cx - w * 0.015,
+                by - h * 1.16,
+                cx + w * 0.015,
+                by - h * 1.1,
+                dark,
+                clip,
+            );
+        }
+        15 => {
+            // concrete mixer: orange cab, a tilted drum whose spiral keeps turning
+            let w = w * 1.25;
+            draw_car(fb, cx, by, w, rgb(245, 140, 20), clip, false, true);
+            let h = w * 0.58;
+            ellipse(
+                fb,
+                cx,
+                by - h * 1.02,
+                w * 0.42,
+                h * 0.58,
+                rgb(170, 174, 182),
+                clip,
+            );
+            for i in 0..4 {
+                let ph = (t * 1.2 + i as f32 * 0.25).fract();
+                let x = cx - w * 0.36 + ph * w * 0.72;
+                rect(
+                    fb,
+                    x,
+                    by - h * 1.5,
+                    x + w * 0.06,
+                    by - h * 0.55,
+                    rgb(240, 130, 30),
+                    clip,
+                );
+            }
+            beacon(fb, cx, by - h * 1.65, w);
+        }
+        16 => {
+            // mail van: yellow with a blue band and a posthorn mark
+            let w = w * 1.1;
+            draw_car(fb, cx, by, w, rgb(246, 206, 40), clip, false, true);
+            let h = w * 0.58;
+            rect(
+                fb,
+                cx - w * 0.5,
+                by - h * 0.62,
+                cx + w * 0.5,
+                by - h * 0.5,
+                rgb(30, 70, 160),
+                clip,
+            );
+            rect(
+                fb,
+                cx - w * 0.1,
+                by - h * 1.05,
+                cx + w * 0.1,
+                by - h * 0.9,
+                rgb(30, 70, 160),
+                clip,
+            );
+            rect(
+                fb,
+                cx + w * 0.06,
+                by - h * 1.0,
+                cx + w * 0.14,
+                by - h * 0.95,
+                rgb(30, 70, 160),
+                clip,
+            );
+        }
+        17 => {
+            // limousine: long, black and polished, a silver trim and a tinted rear window
+            let w = w * 1.05;
+            draw_car(fb, cx, by, w, rgb(18, 20, 26), clip, false, false);
+            let h = w * 0.58;
+            rect(
+                fb,
+                cx - w * 0.5,
+                by - h * 0.5,
+                cx + w * 0.5,
+                by - h * 0.44,
+                rgb(200, 206, 216),
+                clip,
+            );
+            rect(
+                fb,
+                cx - w * 0.34,
+                by - h * 0.98,
+                cx + w * 0.34,
+                by - h * 0.72,
+                rgb(40, 52, 74),
+                clip,
+            );
+            rect(
+                fb,
+                cx - w * 0.5,
+                by - h * 0.74,
+                cx + w * 0.5,
+                by - h * 0.7,
+                rgb(200, 206, 216),
+                clip,
+            );
+        }
+        18 => {
+            // camper: white box with a teal stripe, a roof box and a ladder
+            let w = w * 1.25;
+            draw_car(fb, cx, by, w, rgb(240, 240, 234), clip, false, true);
+            let h = w * 0.58;
+            rect(
+                fb,
+                cx - w * 0.5,
+                by - h * 0.78,
+                cx + w * 0.5,
+                by - h * 0.62,
+                rgb(30, 150, 150),
+                clip,
+            );
+            rect(
+                fb,
+                cx - w * 0.28,
+                by - h * 1.38,
+                cx + w * 0.28,
+                by - h * 1.22,
+                rgb(216, 220, 224),
+                clip,
+            );
+            rect(
+                fb,
+                cx + w * 0.34,
+                by - h * 1.3,
+                cx + w * 0.4,
+                by - h * 0.7,
+                dark,
+                clip,
+            );
+            rect(
+                fb,
+                cx + w * 0.34,
+                by - h * 1.05,
+                cx + w * 0.46,
+                by - h * 1.0,
+                dark,
+                clip,
+            );
+        }
+        19 => {
+            // courier motorcycle: narrow, a rider in a red helmet and a yellow box on the rear
+            let w = w * 0.38;
+            let h = w * 1.4;
+            rect(
+                fb,
+                cx - w * 0.12,
+                by - h * 0.35,
+                cx + w * 0.12,
+                by,
+                dark,
+                clip,
+            );
+            rect(
+                fb,
+                cx - w * 0.4,
+                by - h * 0.95,
+                cx + w * 0.4,
+                by - h * 0.45,
+                rgb(250, 200, 30),
+                clip,
+            );
+            rect(
+                fb,
+                cx - w * 0.28,
+                by - h * 1.3,
+                cx + w * 0.28,
+                by - h * 0.95,
+                rgb(40, 44, 56),
+                clip,
+            );
+            ellipse(
+                fb,
+                cx,
+                by - h * 1.45,
+                w * 0.22,
+                h * 0.17,
+                rgb(210, 36, 40),
+                clip,
+            );
+            if on {
+                glow(
+                    fb,
+                    cx,
+                    by - h * 0.4,
+                    w * 0.9,
+                    w * 0.5,
+                    rgb(255, 60, 40),
+                    0.5,
+                    clip,
+                );
+            }
         }
         _ => draw_car(fb, cx, by, w, rgb(200, 30, 30), clip, false, true),
     }

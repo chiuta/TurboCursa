@@ -192,7 +192,9 @@ impl Crossing {
 /// A special vehicle on the road. Kinds: 0 ambulance, 1 fire engine (both with sirens, others must
 /// make room), 2 snowplough, 3 tow truck, 4 road-works truck, 5 street sweeper, 6 cash van,
 /// 7 school bus, 8 taxi, 9 army truck, 10 ice-cream van (all overtake from behind) and
-/// 11 tractor (crawls along the right lane ahead of you).
+/// 11 tractor (crawls along the right lane ahead of you). Kinds 12..=19 are more traffic that
+/// overtakes from behind: 12 garbage truck, 13 city bus, 14 fuel tanker, 15 concrete mixer,
+/// 16 mail van, 17 limousine, 18 camper, 19 courier motorcycle.
 #[derive(Clone, Copy, Debug)]
 pub struct Emerg {
     pub kind: u8,

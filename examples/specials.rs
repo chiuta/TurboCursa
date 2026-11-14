@@ -1,9 +1,9 @@
-//! Renders each special vehicle (kinds 0..=11) 2600 units ahead of the player into /tmp/sp_<kind>.png,
+//! Renders each special vehicle (kinds 0..=19) 2600 units ahead of the player into /tmp/sp_<kind>.png,
 //! natively at 1728x1080.
 use turbocursa::game::*;
 use turbocursa::share::StageCode;
 fn main() {
-    for kind in 0..=11u8 {
+    for kind in 0..=19u8 {
         let mut g = StageCode {
             seed: 7,
             mode: 0,

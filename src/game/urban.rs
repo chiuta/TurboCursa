@@ -579,7 +579,9 @@ impl Game {
             && self.city.scenes.iter().all(|&z| (z - pz).abs() > 12000.0)
         {
             // ambulances and fire engines are the most common; the snowplough needs snow
-            const POOL: [u8; 16] = [0, 0, 0, 1, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 11];
+            const POOL: [u8; 24] = [
+                0, 0, 0, 1, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 11, 12, 13, 14, 15, 16, 17, 18, 19,
+            ];
             let mut kind = POOL[(self.fx_rng.f() * POOL.len() as f32) as usize % POOL.len()];
             if kind == 2
                 && !matches!(

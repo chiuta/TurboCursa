@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.14.0
+
+### Added
+- **Eight more special vehicles** (kinds 12 to 19): garbage truck, city bus, fuel tanker, concrete mixer (the drum spiral turns), mail van, limousine, camper and courier motorcycle. Each has its own drawing and its own engine sound (hydraulic hiss, air brake and stop chime, tanker slosh, drum grinding, mail chime, smooth V8, camper rattle, motorcycle buzz). They overtake from behind like the other traffic and join the random pool; the tests check that each one changes the picture, is audible and sounds different from the others.
+- **Presentation page**: the special-vehicles section now shows all 20 traffic vehicles plus portraits of the police car and the traffic helicopter (they were already in the game, but were missing from the page). Names in 8 languages. `examples/special_shots.rs` renders them; `render::draw_portrait` draws the police car and the helicopter for it.
+
+### Not verified
+- How the new sounds feel on real speakers (only measured for level and difference), and how often each vehicle turns up in a long run.
+
 ## 1.13.0
 
 ### Added

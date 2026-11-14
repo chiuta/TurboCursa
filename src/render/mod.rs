@@ -1149,6 +1149,19 @@ pub fn overlay_text_at(
     text_shadow(fb, x, y, s, scale, c);
 }
 
+/// Draws the police car (`which` 0) or the traffic helicopter (1) at a given place on a buffer;
+/// `size` is the car width in pixels (for the helicopter, the pixel size of one world unit times
+/// 1000). Used by the portrait tool for the presentation page.
+pub fn draw_portrait(fb: &mut [u32], w: usize, h: usize, which: u8, cx: f32, by: f32, size: f32) {
+    DIM.with(|d| d.set((w, h)));
+    let clip = h as f32;
+    if which == 0 {
+        city::draw_police(fb, cx, by, size, 0.3, clip);
+    } else {
+        city::draw_heli(fb, cx, by, size / 1000.0, 900.0, 0.3, clip, true);
+    }
+}
+
 pub fn render_view(g: &Game, fb: &mut [u32], vw_: usize, vh_: usize) {
     DIM.with(|d| d.set((vw_, vh_)));
     assert_eq!(fb.len(), vw_ * vh_);
