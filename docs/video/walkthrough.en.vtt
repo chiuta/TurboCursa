@@ -1,0 +1,105 @@
+WEBVTT
+
+1
+00:00:01.760 --> 00:00:04.300
+The TURBOCURSA page: play right now in the browser, nothing to install.
+
+2
+00:00:04.770 --> 00:00:10.700
+The browser version is one HTML file that also works offline. Install it from your browser's menu.
+
+3
+00:00:11.270 --> 00:00:15.700
+The native Rust app for Windows, macOS and Linux: one command, or a direct download.
+
+4
+00:00:16.290 --> 00:00:23.900
+Direct links to the latest release: browser, Windows, macOS (Apple Silicon and Intel), Linux, source and SHA-256 checksums.
+
+5
+00:00:24.550 --> 00:00:34.200
+On Linux and macOS one command downloads, verifies the checksum and installs.
+
+6
+00:00:34.300 --> 00:00:45.230
+Then start it with turbocursa. On Windows, use the PowerShell line from the page.
+
+7
+00:00:47.220 --> 00:00:50.220
+Every option sits in the bar above the game.
+
+8
+00:00:50.720 --> 00:00:57.770
+Mode: campaign, time trial, endless, rush hour, orbs, rings, reversal, blackout, zen…
+
+9
+00:00:58.270 --> 00:01:00.150
+Car paint: the livery of any country.
+
+10
+00:01:00.650 --> 00:01:07.130
+Vehicle: from sports cars to trucks and Formula cars.
+
+11
+00:01:07.630 --> 00:01:13.310
+Difficulty, from Easy to Insane.
+
+12
+00:01:13.810 --> 00:01:18.250
+Weather: rain, snow, fog and more.
+
+13
+00:01:18.750 --> 00:01:23.140
+Surface: asphalt, frozen lake, dunes…
+
+14
+00:01:23.640 --> 00:01:29.210
+Time of day: dawn, day, dusk, night.
+
+15
+00:01:29.710 --> 00:01:32.560
+Vision: filters for colour blindness and a high-contrast view.
+
+16
+00:01:33.060 --> 00:01:34.980
+Assist: holds bends, self-centring, gentle walls.
+
+17
+00:01:35.480 --> 00:01:48.210
+Press Enter and drive: arrows steer, Space is turbo.
+
+18
+00:01:48.710 --> 00:01:56.030
+The interface comes in 8 languages.
+
+19
+00:02:06.090 --> 00:02:09.790
+Drive with the arrow keys; Space is turbo.
+
+20
+00:02:10.190 --> 00:02:13.870
+Esc pauses the stage: everything freezes.
+
+21
+00:02:14.270 --> 00:02:17.440
+Esc resumes it.
+
+22
+00:02:17.840 --> 00:02:21.010
+Switching window or tab pauses automatically.
+
+23
+00:02:21.410 --> 00:02:24.020
+On a phone, a tap resumes.
+
+24
+00:02:24.420 --> 00:02:28.820
+In pause, Enter restarts the stage.
+
+25
+00:02:30.130 --> 00:02:43.630
+The native app, here in demo mode: the pilot drives every level by itself (turbocursa --demo).
+
+26
+00:02:44.130 --> 00:02:59.330
+Esc quits the demo; in a normal race Esc pauses.

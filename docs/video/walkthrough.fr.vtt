@@ -1,0 +1,105 @@
+WEBVTT
+
+1
+00:00:01.760 --> 00:00:04.300
+La page TURBOCURSA : jouez tout de suite dans le navigateur, sans installation.
+
+2
+00:00:04.770 --> 00:00:10.700
+La version navigateur est un seul fichier HTML, utilisable hors ligne. Installez-la depuis le menu du navigateur.
+
+3
+00:00:11.270 --> 00:00:15.700
+L'application native en Rust pour Windows, macOS et Linux : une commande, ou un téléchargement direct.
+
+4
+00:00:16.290 --> 00:00:23.900
+Liens directs vers la dernière version : navigateur, Windows, macOS (Apple Silicon et Intel), Linux, sources et sommes SHA-256.
+
+5
+00:00:24.550 --> 00:00:34.200
+Sous Linux et macOS, une seule commande télécharge, vérifie la somme de contrôle et installe.
+
+6
+00:00:34.300 --> 00:00:45.230
+Lancez ensuite turbocursa. Sous Windows, utilisez la ligne PowerShell de la page.
+
+7
+00:00:47.220 --> 00:00:50.220
+Toutes les options sont dans la barre au-dessus du jeu.
+
+8
+00:00:50.720 --> 00:00:57.770
+Mode : campagne, contre-la-montre, sans fin, heure de pointe, orbes, anneaux, inversion, obscurité, zen…
+
+9
+00:00:58.270 --> 00:01:00.150
+Peinture : les couleurs de n'importe quel pays.
+
+10
+00:01:00.650 --> 00:01:07.130
+Véhicule : des voitures de sport aux camions et monoplaces.
+
+11
+00:01:07.630 --> 00:01:13.310
+Difficulté, de Facile à Fou.
+
+12
+00:01:13.810 --> 00:01:18.250
+Météo : pluie, neige, brouillard et plus.
+
+13
+00:01:18.750 --> 00:01:23.140
+Sol : asphalte, lac gelé, dunes…
+
+14
+00:01:23.640 --> 00:01:29.210
+Heure : aube, jour, crépuscule, nuit.
+
+15
+00:01:29.710 --> 00:01:32.560
+Vision : filtres pour le daltonisme et contraste élevé.
+
+16
+00:01:33.060 --> 00:01:34.980
+Assistance : tient les virages, auto-centrage, murs doux.
+
+17
+00:01:35.480 --> 00:01:48.210
+Appuyez sur Entrée et roulez : flèches pour tourner, Espace pour le turbo.
+
+18
+00:01:48.710 --> 00:01:56.030
+L'interface existe en 8 langues.
+
+19
+00:02:06.090 --> 00:02:09.790
+Conduisez avec les flèches ; Espace pour le turbo.
+
+20
+00:02:10.190 --> 00:02:13.870
+Échap met l'étape en pause : tout se fige.
+
+21
+00:02:14.270 --> 00:02:17.440
+Échap la reprend.
+
+22
+00:02:17.840 --> 00:02:21.010
+Changer de fenêtre ou d'onglet met en pause automatiquement.
+
+23
+00:02:21.410 --> 00:02:24.020
+Sur téléphone, un toucher reprend.
+
+24
+00:02:24.420 --> 00:02:28.820
+En pause, Entrée recommence l'étape.
+
+25
+00:02:30.130 --> 00:02:43.630
+L'application native, ici en mode démo : le pilote conduit seul tous les niveaux (turbocursa --demo).
+
+26
+00:02:44.130 --> 00:02:59.330
+Échap quitte la démo ; dans une vraie course, Échap met en pause.

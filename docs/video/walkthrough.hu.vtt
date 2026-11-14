@@ -1,0 +1,105 @@
+WEBVTT
+
+1
+00:00:01.760 --> 00:00:04.300
+A TURBOCURSA oldala: azonnal játszhatsz böngészőben, telepítés nélkül.
+
+2
+00:00:04.770 --> 00:00:10.700
+A böngészős változat egyetlen HTML-fájl, offline is működik. A böngésző menüjéből telepíthető.
+
+3
+00:00:11.270 --> 00:00:15.700
+A natív Rust-alkalmazás Windowsra, macOS-re és Linuxra: egy parancs vagy közvetlen letöltés.
+
+4
+00:00:16.290 --> 00:00:23.900
+Közvetlen linkek a legújabb kiadáshoz: böngésző, Windows, macOS (Apple Silicon és Intel), Linux, forráskód és SHA-256 ellenőrző összegek.
+
+5
+00:00:24.550 --> 00:00:34.200
+Linuxon és macOS-en egy parancs letölt, ellenőrzi az összeget és telepít.
+
+6
+00:00:34.300 --> 00:00:45.230
+Utána indítsd a turbocursa paranccsal. Windowson használd az oldalon lévő PowerShell-sort.
+
+7
+00:00:47.220 --> 00:00:50.220
+Minden beállítás a játék feletti sávban van.
+
+8
+00:00:50.720 --> 00:00:57.770
+Mód: kampány, időfutam, végtelen, csúcsforgalom, gömbök, gyűrűk, megfordítás, sötétség, zen…
+
+9
+00:00:58.270 --> 00:01:00.150
+Fényezés: bármely ország színei.
+
+10
+00:01:00.650 --> 00:01:07.130
+Jármű: sportautótól a teherautóig és a formulaautóig.
+
+11
+00:01:07.630 --> 00:01:13.310
+Nehézség, a könnyűtől az őrültig.
+
+12
+00:01:13.810 --> 00:01:18.250
+Időjárás: eső, hó, köd és más.
+
+13
+00:01:18.750 --> 00:01:23.140
+Talaj: aszfalt, fagyott tó, dűnék…
+
+14
+00:01:23.640 --> 00:01:29.210
+Napszak: hajnal, nappal, alkony, éjszaka.
+
+15
+00:01:29.710 --> 00:01:32.560
+Látás: színtévesztési szűrők és nagy kontraszt.
+
+16
+00:01:33.060 --> 00:01:34.980
+Segéd: tartja a kanyart, önközépre állás, szelíd falak.
+
+17
+00:01:35.480 --> 00:01:48.210
+Nyomj Entert és vezess: a nyilak kormányoznak, a szóköz a turbó.
+
+18
+00:01:48.710 --> 00:01:56.030
+A felület 8 nyelven érhető el.
+
+19
+00:02:06.090 --> 00:02:09.790
+Vezess a nyilakkal; a szóköz a turbó.
+
+20
+00:02:10.190 --> 00:02:13.870
+Az Esc szünetelteti a szakaszt: minden megáll.
+
+21
+00:02:14.270 --> 00:02:17.440
+Az Esc folytatja.
+
+22
+00:02:17.840 --> 00:02:21.010
+Ablak- vagy lapváltáskor magától szünetel.
+
+23
+00:02:21.410 --> 00:02:24.020
+Telefonon egy érintés folytatja.
+
+24
+00:02:24.420 --> 00:02:28.820
+Szünetben az Enter újraindítja a szakaszt.
+
+25
+00:02:30.130 --> 00:02:43.630
+A natív alkalmazás, itt demó módban: a pilóta magától végigvezeti az összes szintet (turbocursa --demo).
+
+26
+00:02:44.130 --> 00:02:59.330
+Az Esc kilép a demóból; normál versenyben az Esc szünetel.

@@ -1,0 +1,105 @@
+WEBVTT
+
+1
+00:00:01.760 --> 00:00:04.300
+Die TURBOCURSA-Seite: sofort im Browser spielen, ohne Installation.
+
+2
+00:00:04.770 --> 00:00:10.700
+Die Browser-Version ist eine einzige HTML-Datei, die auch offline läuft. Installiere sie über das Browsermenü.
+
+3
+00:00:11.270 --> 00:00:15.700
+Die native Rust-App für Windows, macOS und Linux: ein Befehl oder direkter Download.
+
+4
+00:00:16.290 --> 00:00:23.900
+Direktlinks zur neuesten Version: Browser, Windows, macOS (Apple Silicon und Intel), Linux, Quellcode und SHA-256-Prüfsummen.
+
+5
+00:00:24.550 --> 00:00:34.200
+Unter Linux und macOS lädt ein Befehl herunter, prüft die Prüfsumme und installiert.
+
+6
+00:00:34.300 --> 00:00:45.230
+Dann mit turbocursa starten. Unter Windows die PowerShell-Zeile der Seite benutzen.
+
+7
+00:00:47.220 --> 00:00:50.220
+Alle Optionen stehen in der Leiste über dem Spiel.
+
+8
+00:00:50.720 --> 00:00:57.770
+Modus: Kampagne, Zeitfahren, Endlos, Stau, Orben, Ringe, Umkehr, Dunkelheit, Zen …
+
+9
+00:00:58.270 --> 00:01:00.150
+Lackierung: die Farben jedes Landes.
+
+10
+00:01:00.650 --> 00:01:07.130
+Fahrzeug: vom Sportwagen über Lkw bis zum Rennwagen.
+
+11
+00:01:07.630 --> 00:01:13.310
+Schwierigkeit, von Leicht bis Wahnsinn.
+
+12
+00:01:13.810 --> 00:01:18.250
+Wetter: Regen, Schnee, Nebel und mehr.
+
+13
+00:01:18.750 --> 00:01:23.140
+Untergrund: Asphalt, gefrorener See, Dünen …
+
+14
+00:01:23.640 --> 00:01:29.210
+Tageszeit: Morgengrauen, Tag, Abenddämmerung, Nacht.
+
+15
+00:01:29.710 --> 00:01:32.560
+Sehen: Filter für Farbsehschwäche und hoher Kontrast.
+
+16
+00:01:33.060 --> 00:01:34.980
+Assistent: hält Kurven, Selbstzentrierung, sanfte Wände.
+
+17
+00:01:35.480 --> 00:01:48.210
+Enter drücken und fahren: Pfeile lenken, Leertaste ist Turbo.
+
+18
+00:01:48.710 --> 00:01:56.030
+Die Oberfläche gibt es in 8 Sprachen.
+
+19
+00:02:06.090 --> 00:02:09.790
+Fahre mit den Pfeilen; Leertaste ist Turbo.
+
+20
+00:02:10.190 --> 00:02:13.870
+Esc pausiert die Etappe: alles friert ein.
+
+21
+00:02:14.270 --> 00:02:17.440
+Esc setzt fort.
+
+22
+00:02:17.840 --> 00:02:21.010
+Fenster- oder Tab-Wechsel pausiert automatisch.
+
+23
+00:02:21.410 --> 00:02:24.020
+Am Handy setzt ein Tippen fort.
+
+24
+00:02:24.420 --> 00:02:28.820
+In der Pause startet Enter die Etappe neu.
+
+25
+00:02:30.130 --> 00:02:43.630
+Die native App, hier im Demo-Modus: der Pilot fährt alle Level selbst (turbocursa --demo).
+
+26
+00:02:44.130 --> 00:02:59.330
+Esc beendet die Demo; in einem normalen Rennen pausiert Esc.

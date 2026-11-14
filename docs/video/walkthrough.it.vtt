@@ -1,0 +1,105 @@
+WEBVTT
+
+1
+00:00:01.760 --> 00:00:04.300
+La pagina di TURBOCURSA: gioca subito nel browser, senza installare nulla.
+
+2
+00:00:04.770 --> 00:00:10.700
+La versione per browser è un unico file HTML che funziona anche offline. Si installa dal menu del browser.
+
+3
+00:00:11.270 --> 00:00:15.700
+L'app nativa in Rust per Windows, macOS e Linux: un solo comando o un download diretto.
+
+4
+00:00:16.290 --> 00:00:23.900
+Link diretti all'ultima versione: browser, Windows, macOS (Apple Silicon e Intel), Linux, sorgenti e checksum SHA-256.
+
+5
+00:00:24.550 --> 00:00:34.200
+Su Linux e macOS un solo comando scarica, verifica il checksum e installa.
+
+6
+00:00:34.300 --> 00:00:45.230
+Poi avvialo con turbocursa. Su Windows usa la riga PowerShell della pagina.
+
+7
+00:00:47.220 --> 00:00:50.220
+Tutte le opzioni sono nella barra sopra il gioco.
+
+8
+00:00:50.720 --> 00:00:57.770
+Modalità: campagna, cronometro, infinito, ora di punta, sfere, anelli, inversione, buio, zen…
+
+9
+00:00:58.270 --> 00:01:00.150
+Vernice: i colori di qualsiasi paese.
+
+10
+00:01:00.650 --> 00:01:07.130
+Veicolo: dalle auto sportive ai camion e alle monoposto.
+
+11
+00:01:07.630 --> 00:01:13.310
+Difficoltà, da Facile a Folle.
+
+12
+00:01:13.810 --> 00:01:18.250
+Meteo: pioggia, neve, nebbia e altro.
+
+13
+00:01:18.750 --> 00:01:23.140
+Fondo: asfalto, lago ghiacciato, dune…
+
+14
+00:01:23.640 --> 00:01:29.210
+Ora: alba, giorno, tramonto, notte.
+
+15
+00:01:29.710 --> 00:01:32.560
+Vista: filtri per il daltonismo e alto contrasto.
+
+16
+00:01:33.060 --> 00:01:34.980
+Assistenza: tiene le curve, auto-centraggio, muri morbidi.
+
+17
+00:01:35.480 --> 00:01:48.210
+Premi Invio e guida: le frecce sterzano, Spazio è il turbo.
+
+18
+00:01:48.710 --> 00:01:56.030
+L'interfaccia è disponibile in 8 lingue.
+
+19
+00:02:06.090 --> 00:02:09.790
+Guida con le frecce; Spazio è il turbo.
+
+20
+00:02:10.190 --> 00:02:13.870
+Esc mette in pausa la tappa: tutto si ferma.
+
+21
+00:02:14.270 --> 00:02:17.440
+Esc la riprende.
+
+22
+00:02:17.840 --> 00:02:21.010
+Cambiare finestra o scheda mette in pausa da solo.
+
+23
+00:02:21.410 --> 00:02:24.020
+Sul telefono un tocco riprende.
+
+24
+00:02:24.420 --> 00:02:28.820
+In pausa, Invio ricomincia la tappa.
+
+25
+00:02:30.130 --> 00:02:43.630
+L'app nativa, qui in modalità demo: il pilota guida da solo tutti i livelli (turbocursa --demo).
+
+26
+00:02:44.130 --> 00:02:59.330
+Esc chiude la demo; in una gara normale Esc mette in pausa.
