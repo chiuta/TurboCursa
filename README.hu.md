@@ -19,6 +19,7 @@ Tizenkilenc generált táj: erdő, sivatag, alkony, a felhőkben rejtőző koron
 - Módok: `--mode campaign|timetrial|endless|rush|collector|slalom|mirror|blackout|zen`, `--cpu` (verseny számítógépes riválissal), `--versus` (2 játékos); web: `?mode=NÉV`. · `--career` (divíziók, bajnokságok és kupák, mentéssel)
 - Demó: `--demo` egy MI-pilótával végigjátszatja az összes módot az összes nehézségi szinten, pályáról pályára (a demóautó védett és nem fogyaszt üzemanyagot; semmi sem kerül mentésre)
 - Szünet: `Esc` szünetelteti a futó szakaszt (Esc folytatja, Enter újraindítja); a játék akkor is szünetel, ha az ablak elveszti a fókuszt. A `--calm` (vagy a böngészőben a rendszer csökkentett mozgás beállítása) kikapcsolja a képernyőremegést és szelídíti a villanásokat; a `--help` és a `--version` kilistázza a kapcsolókat.
+- Hang és kép: a hang mindenhol sztereó; a rendőrségi, mentő- és tűzoltósziréna, valamint a helikopter rotorja különbözően szól. A `--hd` (natív) vagy a `HD` gomb / `F2` (böngésző) éles Full HD képre vált: a 640×400-as render nagyítása 1920×1080-ra, nem natív 1080p.
 
 ## Játékmódok
 

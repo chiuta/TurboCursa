@@ -53,6 +53,23 @@ impl Game {
             gear: self.gear,
             pads: self.pads,
             animals: self.animals_hit,
+            emerg: self.nearest_emerg().map_or(0.0, |(c, _)| c),
+            emerg_kind: self.nearest_emerg().map_or(0, |(_, e)| e.kind + 1),
+            emerg_pan: self
+                .nearest_emerg()
+                .map_or(0.0, |(_, e)| ((e.x - self.x) * 0.7).clamp(-0.9, 0.9)),
+            emerg_passed: self
+                .nearest_emerg()
+                .is_some_and(|(_, e)| e.z > self.pos + PLAYER_Z),
+            heli: if self.car.class.is_heli() && self.state == State::Playing {
+                if self.speed >= 2200.0 {
+                    2
+                } else {
+                    1
+                }
+            } else {
+                0
+            },
             own_siren: if self.privileged() && self.speed > 800.0 && self.state == State::Playing {
                 match self.car.class {
                     crate::cars::VehicleClass::Police => 1,
@@ -64,6 +81,16 @@ impl Game {
                 0
             },
         }
+    }
+
+    /// The closest overtaking ambulance / fire engine within earshot, with its closeness 0..1.
+    fn nearest_emerg(&self) -> Option<(f32, Emerg)> {
+        let pz = self.pos + PLAYER_Z;
+        self.emerg
+            .iter()
+            .map(|e| ((1.0 - (e.z - pz).abs() / 9000.0).clamp(0.0, 1.0), *e))
+            .filter(|(c, _)| *c > 0.0)
+            .max_by(|a, b| a.0.total_cmp(&b.0))
     }
 
     pub fn set_view(&mut self, w: usize, h: usize) {

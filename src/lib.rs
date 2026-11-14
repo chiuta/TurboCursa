@@ -23,6 +23,7 @@ pub mod game;
 pub mod gamepad;
 pub mod garage;
 pub mod ghost;
+pub mod hd;
 pub mod i18n;
 pub mod i18n_career;
 pub mod launch;

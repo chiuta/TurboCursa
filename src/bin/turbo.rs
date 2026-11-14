@@ -1,4 +1,4 @@
-//! Native window front-end (TURBOCURSA 1.7.1).
+//! Native window front-end (TURBOCURSA 1.8.0).
 //!   cargo run --release --features native --bin turbo [-- --versus | --cpu | --career | --demo | --mode NAME | --car RO] [--class sports|city|truck|bus|moped|...] [--level easy|normal|hard|expert|insane] [--weather clear|rain|storm|fog|snow|blizzard|sandstorm|hail|glaze|heatwave|ash|auto] [--surface asphalt|icelake|saltflat|lava|dunes|bog|auto] [--time auto|dawn|day|dusk|night] [--tyre auto|road|rain|snow|offroad] [--setup balanced|sprint|downforce|economy] [--rank N] [--colorblind protan|deutan|tritan|contrast] [--assist 0-3] [--slow 40-100] [--large] [--rally] [--champ TCC1-...|7|10|15] [--tour] [--ghost FILE|TG1;...] [--ghost-export SEED] [--pack 8-16 [--inverted] [--qualify]] [--players 3|4 [--humans N]] [--garage] [--buy 0-3] [--weekly] [--music 0-3] [--mph] [--keys 0-3] [--secret CODE] [--daily] [--design] [--code TCS1-...] [--seed N] [--lang xx]
 //!   modes: campaign timetrial endless rush collector slalom mirror blackout zen (or 0-8)
 //! Photo mode: P on/off (arrows move the camera, Up/Down scrub, Space+Up/Down height), H shows the HUD, C saves a PNG.
@@ -40,20 +40,29 @@ mod native_audio {
             let ch = cfg.channels() as usize;
             let shared = Arc::new(Mutex::new((Synth::new(sr, seed), AudioParams::default())));
             let s2 = shared.clone();
-            let mut mono: Vec<f32> = Vec::new();
+            let mut pair: Vec<f32> = Vec::new();
             let stream = dev
                 .build_output_stream(
                     &cfg.into(),
                     move |data: &mut [f32], _| {
                         let frames = data.len() / ch;
-                        if mono.len() < frames {
-                            mono.resize(frames, 0.0);
+                        if pair.len() < frames * 2 {
+                            pair.resize(frames * 2, 0.0);
                         }
                         let mut g = s2.lock().unwrap();
                         let p = g.1;
-                        g.0.render(&mut mono[..frames], &p);
+                        g.0.render_stereo(&mut pair[..frames * 2], &p);
+                        // stereo: left and right go to the first two channels; a mono device gets
+                        // the average, surround layouts repeat the pair on the remaining channels
                         for (i, f) in data.chunks_mut(ch).enumerate() {
-                            f.fill(mono[i]);
+                            let (l, r) = (pair[2 * i], pair[2 * i + 1]);
+                            if ch == 1 {
+                                f[0] = (l + r) * 0.5;
+                            } else {
+                                for (c, v) in f.iter_mut().enumerate() {
+                                    *v = if c % 2 == 0 { l } else { r };
+                                }
+                            }
                         }
                     },
                     |e| eprintln!("audio error: {e}"),
@@ -162,6 +171,7 @@ enum Mode {
 
 const KNOWN_FLAGS: &[&str] = &[
     "--assist",
+    "--hd",
     "--buy",
     "--car",
     "--career",
@@ -217,7 +227,7 @@ Modes:   --mode campaign|timetrial|endless|rush|collector|slalom|mirror|blackout
 Versus:  --versus  --cpu  --players 3|4 [--humans N]  --pack 8-16 [--inverted] [--qualify]
 Car:     --car RO  --class sports|sedan|city|truck|...  --level easy|normal|hard|expert|insane
 World:   --weather clear|rain|storm|fog|snow|...|auto  --surface asphalt|icelake|...|auto  --time auto|dawn|day|dusk|night
-Access:  --colorblind protan|deutan|tritan|contrast  --assist 0-3  --slow 40-100  --calm (reduced motion)  --large  --lang en|ro|fr|it|es|pt|de|hu
+Access:  --colorblind protan|deutan|tritan|contrast  --assist 0-3  --slow 40-100  --calm (reduced motion)  --hd (Full HD, 1920x1080 borderless)  --large  --lang en|ro|fr|it|es|pt|de|hu
 Extras:  --demo (the pilot drives every level)  --garage  --music 0-3  --mph  --keys 0-3  --seed N  --nopick
 Other:   -h, --help  -V, --version
 
@@ -520,16 +530,43 @@ fn main() {
     } else {
         "TURBOCURSA"
     };
-    let mut win = Window::new(
-        title,
-        W,
-        H,
-        WindowOptions {
-            scale: if large { Scale::X4 } else { Scale::X2 },
-            ..WindowOptions::default()
-        },
-    )
+    // Full HD (--hd): a borderless 1920x1080 window, the picture scaled with a sharp filter
+    let hd = args.iter().any(|a| a == "--hd");
+    let mut win = if hd {
+        Window::new(
+            title,
+            turbocursa::hd::HD_W,
+            turbocursa::hd::HD_H,
+            WindowOptions {
+                borderless: true,
+                scale: Scale::X1,
+                ..WindowOptions::default()
+            },
+        )
+    } else {
+        Window::new(
+            title,
+            W,
+            H,
+            WindowOptions {
+                scale: if large { Scale::X4 } else { Scale::X2 },
+                ..WindowOptions::default()
+            },
+        )
+    }
     .expect("window");
+    if hd {
+        win.set_position(0, 0);
+    }
+    let mut hd_up = turbocursa::hd::Upscaler::new();
+    let mut hd_buf = vec![
+        0u32;
+        if hd {
+            turbocursa::hd::HD_W * turbocursa::hd::HD_H
+        } else {
+            0
+        }
+    ];
     win.set_target_fps(60);
     let typed = std::rc::Rc::new(std::cell::RefCell::new(Vec::<char>::new()));
     win.set_input_callback(Box::new(CharSink(typed.clone())));
@@ -1098,6 +1135,12 @@ fn main() {
                 Err(e) => win.set_title(&format!("TURBOCURSA  photo failed: {e}")),
             }
         }
-        win.update_with_buffer(&fb, W, H).unwrap();
+        if hd {
+            hd_up.run(&fb, &mut hd_buf);
+            win.update_with_buffer(&hd_buf, turbocursa::hd::HD_W, turbocursa::hd::HD_H)
+                .unwrap();
+        } else {
+            win.update_with_buffer(&fb, W, H).unwrap();
+        }
     }
 }

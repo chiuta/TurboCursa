@@ -68,7 +68,7 @@ fn browser_api_survives_hostile_calls() {
             for n in [0u32, 1, 3, 2048, 1 << 20, u32::MAX] {
                 let p = audio_fill(n);
                 assert!(!p.is_null());
-                let m = (n as usize).min(1 << 16);
+                let m = (n as usize).min(1 << 15) * 2;
                 let s = unsafe { std::slice::from_raw_parts(p, m) };
                 assert!(
                     s.iter().all(|x| x.is_finite() && x.abs() <= 1.0),

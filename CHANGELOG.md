@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.8.0
+
+### Added
+- **Stereo sound in the whole game**: music, effects, engine, wind and rain are panned with equal-power gains, the engine is widened, the echo ping-pongs between the ears, and the browser now plays two channels (native output maps the stereo pair to the device channels).
+- **Distinct emergency sounds**: police two-tone siren, ambulance yelp, fire-engine wail with an air horn, and a helicopter rotor. Ambulances and fire engines can overtake you, with proximity, panning and Doppler.
+- **Full HD mode**: `--hd` (native, borderless 1920x1080) and the `HD` button or `F2` in the browser (remembered, also `?hd=1`). It is a sharp-bilinear upscale of the 640x400 picture to 1728x1080, not native 1080p rendering. The native pass takes about 1.5 ms per frame.
+
+### Not verified
+- Sound was only checked as generated signal (tests), never on real speakers; the browser HD path was timed in software-rendered Chrome only.
+
 ## 1.7.1
 
 ### Added

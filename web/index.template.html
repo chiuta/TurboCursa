@@ -9,8 +9,9 @@ html,body{margin:0;height:100%;background:#0b0b12;color:#fff;font:14px system-ui
 #wrap{display:flex;flex-direction:column;height:100%;align-items:center;justify-content:center;padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);box-sizing:border-box}
 #bar{display:flex;gap:8px;align-items:center;justify-content:space-between;flex-wrap:wrap;width:min(var(--W),calc(var(--H)*1.6));padding:6px;box-sizing:border-box}
 #bar .grp{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
-#bar a,#bar select,#tb button,#tb a{background:#2b2f4a;color:#fff;border:0;border-radius:8px;padding:8px 10px;font:inherit;text-decoration:none;min-height:44px;box-sizing:border-box;display:inline-flex;align-items:center;justify-content:center}
+#bar a,#bar select,#bar button,#tb button,#tb a{background:#2b2f4a;color:#fff;border:0;border-radius:8px;padding:8px 10px;font:inherit;text-decoration:none;min-height:44px;box-sizing:border-box;display:inline-flex;align-items:center;justify-content:center}
 #bar a.cur{background:#e6a817;color:#111}
+#hq.on{background:#ffd23f;color:#111}
 canvas{width:min(var(--W),calc(var(--H)*1.6));image-rendering:auto;background:#000;flex:none}
 #tb{display:none;gap:8px;width:min(var(--W),calc(var(--H)*1.6));padding:6px;box-sizing:border-box;justify-content:space-between}
 #tb button,#tb a{min-width:48px;font-size:18px}
@@ -71,7 +72,7 @@ body.rot #wrap{position:fixed;top:0;left:100vw;width:100vh;height:100vw;transfor
 }
 </style></head><body>
 <div id="wrap">
-<div id="bar"><div class="grp"><label for="md" id="mdl"></label><select id="md"></select><a id="m3" href="?">·</a><a id="cd" href="#" role="button">⌨</a></div>
+<div id="bar"><div class="grp"><label for="md" id="mdl"></label><select id="md"></select><a id="m3" href="?">·</a><a id="cd" href="#" role="button">⌨</a><button id="hq" type="button" aria-label="Full HD" aria-pressed="false">HD</button></div>
 <div class="grp"><label for="cr" id="crl"></label><select id="cr"></select></div>
 <div class="grp"><label for="vh" id="vhl"></label><select id="vh"></select></div>
 <div class="grp"><label for="lv" id="lvl"></label><select id="lv"></select></div>
@@ -167,6 +168,10 @@ const map=k=>keys[k]||gear[k]||(versus?keys2[k]:solo[k])||0;
 WebAssembly.instantiate(bytes,{}).then(({instance})=>{
  const e=instance.exports,W=e.width(),H=e.height(),ctx=$("c").getContext("2d");
  wasm=e;
+ let hd=false;try{hd=q.get("hd")==="1"||(q.get("hd")!=="0"&&localStorage.getItem("turbocursa.hd")==="1")}catch(x){}
+ const oc=document.createElement("canvas"),mid=document.createElement("canvas");oc.width=W;oc.height=H;const ox=oc.getContext("2d");mid.width=1920;mid.height=1200;const mx=mid.getContext("2d");
+ const setHd=on=>{hd=on;$("c").width=on?1728:W;$("c").height=on?1080:H;$("hq").setAttribute("aria-pressed",on?"true":"false");$("hq").classList.toggle("on",on);try{localStorage.setItem("turbocursa.hd",on?"1":"0")}catch(x){}};
+ setHd(hd);$("hq").addEventListener("click",()=>{setHd(!hd);$("hq").blur()});
  (()=>{let idx=-1;if(carQ){for(let i=0;i<e.country_count();i++){const v=e.country_code(i);if(String.fromCharCode(v>>8,v&255)===carQ){idx=i;break}}}e.set_car(idx>=0?idx:0xFFFFFFFF)})();
  e.set_class(clQ);e.set_level(lvQ);e.set_weather(wxQ<0?255:wxQ);e.set_surface(sfQ<0?255:sfQ);e.set_pick(!q.has("daily")&&modeCode!==11&&!q.has("class")&&!q.has("level")&&!q.has("weather")&&!q.has("surface")&&!q.has("nopick")?1:0);
  try{e.set_best(bestVal())}catch(x){}
@@ -266,12 +271,13 @@ WebAssembly.instantiate(bytes,{}).then(({instance})=>{
   try{
    actx=new(window.AudioContext||window.webkitAudioContext)();
    e.audio_init(actx.sampleRate);
-   const node=actx.createScriptProcessor(2048,0,1);
-   node.onaudioprocess=ev=>{const out=ev.outputBuffer.getChannelData(0),n=out.length,p=e.audio_fill(n);out.set(new Float32Array(e.memory.buffer,p,n))};
+   const node=actx.createScriptProcessor(2048,0,2);
+   node.onaudioprocess=ev=>{const L=ev.outputBuffer.getChannelData(0),R=ev.outputBuffer.getChannelData(1),n=L.length,p=e.audio_fill(n),a=new Float32Array(e.memory.buffer,p,2*n);for(let i=0;i<n;i++){L[i]=a[2*i];R[i]=a[2*i+1]}};
    gain=actx.createGain();gain.gain.value=0.8;node.connect(gain);gain.connect(actx.destination);
   }catch(err){console.warn("audio unavailable",err)}
  }
  addEventListener("keydown",k=>{if(k.ctrlKey||k.metaKey||k.altKey)return;startAudio();
+  if(k.code==="F2"){if(!k.repeat)$("hq").click();k.preventDefault();return}
   if(k.code==="Escape"){if(!k.repeat)e.pause_ctl(0);k.preventDefault();return}
   if(k.code==="KeyL"){if(!k.repeat)share();return}
   if(k.code==="KeyC"){if(k.repeat)return;const a=document.createElement("a");a.download="turbocursa_photo.png";a.href=$("c").toDataURL("image/png");a.click();return}
@@ -314,7 +320,7 @@ WebAssembly.instantiate(bytes,{}).then(({instance})=>{
  document.addEventListener("visibilitychange",()=>{if(document.hidden){release();if(actx&&actx.state==="running")actx.suspend().catch(()=>{})}else if(actx&&actx.state==="suspended"&&!muted)actx.resume().catch(()=>{})});
  let last=performance.now(),prevState=0,img=null,imgBuf=null,imgPtr=0,dead=false;
  (function loop(t){if(dead)return;try{const dt=Math.min(Math.max((t-last)/1000,0),.05);last=t;pollPad();
-  const p=e.frame(dt);if(!img||imgBuf!==e.memory.buffer||imgPtr!==p){imgBuf=e.memory.buffer;imgPtr=p;img=new ImageData(new Uint8ClampedArray(imgBuf,p,W*H*4),W,H)}ctx.putImageData(img,0,0);
+  const p=e.frame(dt);if(!img||imgBuf!==e.memory.buffer||imgPtr!==p){imgBuf=e.memory.buffer;imgPtr=p;img=new ImageData(new Uint8ClampedArray(imgBuf,p,W*H*4),W,H)}if(hd){ox.putImageData(img,0,0);mx.imageSmoothingEnabled=false;mx.drawImage(oc,0,0,1920,1200);ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality="high";ctx.drawImage(mid,0,0,1728,1080)}else ctx.putImageData(img,0,0);
   const st=e.state_code();
   if(st!==prevState&&st!==2)e.set_best(bestVal());
   if(st!==prevState&&st===2){const s=e.score();if(s>bestVal()){try{localStorage.setItem(bestKey,String(s))}catch(x){}applyLang()}}

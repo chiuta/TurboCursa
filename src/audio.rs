@@ -51,6 +51,14 @@ pub struct AudioParams {
     pub animals: u32,
     /// own siren of a service vehicle: 0 off, 1 police, 2 ambulance, 3 fire engine
     pub own_siren: u8,
+    /// an ambulance (1) or fire engine (2) overtaking with its siren on: closeness 0..1, which one,
+    /// where it is (-1 left .. 1 right) and whether it has already passed
+    pub emerg: f32,
+    pub emerg_kind: u8,
+    pub emerg_pan: f32,
+    pub emerg_passed: bool,
+    /// the player's helicopter: 0 not one, 1 rotor idling on the ground, 2 flying
+    pub heli: u8,
 }
 
 /// Rain-like hiss per weather: clear, rain, storm, fog, snow, blizzard, sandstorm, hail, glaze, heat, ash.
@@ -71,6 +79,8 @@ struct Voice {
     decay: f32,
     cutoff: f32,
     lp: f32,
+    /// -1 left .. 1 right (0 is set to an automatic position when the voice starts)
+    pan: f32,
 }
 
 const VOICE_OFF: Voice = Voice {
@@ -85,6 +95,7 @@ const VOICE_OFF: Voice = Voice {
     decay: 1.0,
     cutoff: 1000.0,
     lp: 0.0,
+    pan: 0.0,
 };
 
 #[derive(Clone, Copy)]
@@ -107,7 +118,23 @@ pub struct Synth {
     e_lp: f32,
     wind_a: f32,
     wind_b: f32,
+    wind_a2: f32,
+    wind_b2: f32,
     rumble: f32,
+    rumble2: f32,
+    turbo_lp2: f32,
+    rain_lp2: f32,
+    eng_dl: [f32; 32],
+    eng_i: usize,
+    pan_i: usize,
+    delay_r: Vec<f32>,
+    em_ph: f32,
+    em_lp: f32,
+    fh1: f32,
+    fh2: f32,
+    rot_ph: f32,
+    rot_lp: f32,
+    rot_lp2: f32,
     turbo_lp: f32,
     off_amp: f32,
     turbo_amp: f32,
@@ -137,6 +164,41 @@ pub struct Synth {
     beep_t: i64,
     cricket_ph: f32,
     last2: (u8, bool, u32, u32),
+}
+
+/// Equal-power pan gains (1.0 each in the middle).
+fn pan_gains(pan: f32) -> (f32, f32) {
+    let th = (pan.clamp(-1.0, 1.0) + 1.0) * std::f32::consts::FRAC_PI_4;
+    (
+        th.cos() * std::f32::consts::SQRT_2,
+        th.sin() * std::f32::consts::SQRT_2,
+    )
+}
+
+/// One sample of a siren: 1 police two-tone, 2 ambulance rising yelp, 3 fire engine slow wail
+/// (4+ and 0 fall back to the wail). `bend` shifts the pitch (Doppler).
+fn siren(kind: u8, ts: f32, sr: f32, ph: &mut f32, lp: &mut f32, bend: f32) -> f32 {
+    let (f, duty, smooth) = match kind {
+        1 => (
+            if (ts * 2.4).fract() < 0.5 {
+                960.0
+            } else {
+                720.0
+            },
+            0.35,
+            0.25,
+        ),
+        2 => (520.0 + 640.0 * (ts * 3.3).fract(), 0.5, 0.12),
+        _ => (
+            380.0 + 520.0 * (0.5 - 0.5 * (TAU * ts / 3.2).cos()),
+            0.42,
+            0.2,
+        ),
+    };
+    *ph = (*ph + f * bend / sr).fract();
+    let raw = if *ph < duty { 1.0 } else { -1.0 };
+    *lp += smooth * (raw - *lp);
+    *lp
 }
 
 fn midi_hz(n: f32) -> f32 {
@@ -195,7 +257,23 @@ impl Synth {
             e_lp: 0.0,
             wind_a: 0.0,
             wind_b: 0.0,
+            wind_a2: 0.0,
+            wind_b2: 0.0,
             rumble: 0.0,
+            rumble2: 0.0,
+            turbo_lp2: 0.0,
+            rain_lp2: 0.0,
+            eng_dl: [0.0; 32],
+            eng_i: 0,
+            pan_i: 0,
+            delay_r: vec![0.0; (sr * 0.27) as usize],
+            em_ph: 0.0,
+            em_lp: 0.0,
+            fh1: 0.0,
+            fh2: 0.0,
+            rot_ph: 0.0,
+            rot_lp: 0.0,
+            rot_lp2: 0.0,
             turbo_lp: 0.0,
             off_amp: 0.0,
             turbo_amp: 0.0,
@@ -226,8 +304,31 @@ impl Synth {
     }
 
     fn trigger(&mut self, v: Voice) {
+        let mut v = v;
+        if v.pan == 0.0 {
+            v.pan = self.auto_pan(&v);
+        }
         let i = self.voices.iter().position(|x| !x.on).unwrap_or(0);
         self.voices[i] = Voice { on: true, ..v };
+    }
+
+    /// Stereo position of a new voice: drums, bass and the fuel beep stay in the middle, the
+    /// other music voices fan out, effects (thunder, ice cracks, hail ticks, bells) land anywhere.
+    fn auto_pan(&mut self, v: &Voice) -> f32 {
+        if v.kind == 4 {
+            return 0.0;
+        }
+        if v.bus == 0 {
+            if v.freq < 160.0 {
+                return 0.0;
+            }
+            self.pan_i = (self.pan_i + 1) % 5;
+            return [-0.55, 0.5, -0.25, 0.3, 0.0][self.pan_i];
+        }
+        if (v.freq - 1320.0).abs() < 1.0 {
+            return 0.0;
+        }
+        (self.rng.f() * 2.0 - 1.0) * 0.7
     }
 
     fn at(&mut self, delay_s: f32, v: Voice) {
@@ -254,6 +355,7 @@ impl Synth {
             decay: self.decay_mul(secs),
             cutoff,
             lp: 0.0,
+            pan: 0.0,
         }
     }
 
@@ -424,7 +526,17 @@ impl Synth {
         self.rng.f() * 2.0 - 1.0
     }
 
+    /// Mono output (the average of both channels).
     pub fn render(&mut self, out: &mut [f32], p: &AudioParams) {
+        self.render_core(out, p, false);
+    }
+
+    /// Stereo output: interleaved left/right samples (`out.len()` should be even).
+    pub fn render_stereo(&mut self, out: &mut [f32], p: &AudioParams) {
+        self.render_core(out, p, true);
+    }
+
+    fn render_core(&mut self, out: &mut [f32], p: &AudioParams, stereo: bool) {
         let mut clean = *p;
         clean.speed = if p.speed.is_finite() {
             p.speed.clamp(0.0, 1.5)
@@ -487,7 +599,8 @@ impl Synth {
         } else {
             0.03
         };
-        for o in out.iter_mut() {
+        let frames = if stereo { out.len() / 2 } else { out.len() };
+        for fi in 0..frames {
             self.music_gain += (mg_target - self.music_gain) * 0.00008;
             self.acc += 1.0;
             if self.acc >= step_len {
@@ -500,7 +613,7 @@ impl Synth {
                     self.trigger(s.v);
                 }
             }
-            let (mut music, mut fx) = (0.0f32, 0.0f32);
+            let (mut ml, mut mr, mut fl, mut fr) = (0.0f32, 0.0f32, 0.0f32, 0.0f32);
             for vi in 0..self.voices.len() {
                 if !self.voices[vi].on {
                     continue;
@@ -542,10 +655,13 @@ impl Synth {
                 if v.amp < 0.0006 {
                     v.on = false;
                 }
+                let (gl, gr) = pan_gains(v.pan);
                 if v.bus == 0 {
-                    music += s;
+                    ml += s * gl;
+                    mr += s * gr;
                 } else {
-                    fx += s;
+                    fl += s * gl;
+                    fr += s * gr;
                 }
             }
             // engine: two detuned saws through a speed-dependent low-pass, with gear steps
@@ -565,29 +681,45 @@ impl Synth {
             };
             let raw = ((2.0 * self.e_ph1 - 1.0) + 0.6 * (2.0 * self.e_ph2 - 1.0) + rattle) * 0.6;
             self.e_lp += ec * (raw - self.e_lp);
-            fx += self.e_lp * self.eng_amp;
+            // the right ear hears the engine a hair later: the highs widen, the fundamental stays centred
+            let late = self.eng_dl[(self.eng_i + 32 - 14) % 32];
+            self.eng_dl[self.eng_i] = self.e_lp;
+            self.eng_i = (self.eng_i + 1) % 32;
+            fl += self.e_lp * self.eng_amp;
+            fr += late * self.eng_amp;
             // wind and tyre noise
             let n = self.noise();
+            let n2 = self.noise();
             self.wind_a += 0.12 * (n - self.wind_a);
             self.wind_b += 0.35 * (self.wind_a - self.wind_b);
-            fx += self.wind_b * 0.55 * sp * sp;
+            self.wind_a2 += 0.12 * (n2 - self.wind_a2);
+            self.wind_b2 += 0.35 * (self.wind_a2 - self.wind_b2);
+            fl += self.wind_b * 0.55 * sp * sp;
+            fr += self.wind_b2 * 0.55 * sp * sp;
             // off-road rumble
             self.off_amp += ((p.offroad && sp > 0.05) as i32 as f32 * 0.2 - self.off_amp) * 0.0008;
             self.rumble += 0.03 * (n - self.rumble);
-            fx += self.rumble * self.off_amp * 3.0;
+            self.rumble2 += 0.03 * (n2 - self.rumble2);
+            fl += self.rumble * self.off_amp * 3.0;
+            fr += self.rumble2 * self.off_amp * 3.0;
             // turbo hiss
             self.turbo_amp += ((p.turbo as i32 as f32) * 0.11 - self.turbo_amp) * 0.0012;
             self.turbo_lp += 0.25 * (n - self.turbo_lp);
-            fx += (n - self.turbo_lp) * self.turbo_amp;
+            self.turbo_lp2 += 0.25 * (n2 - self.turbo_lp2);
+            fl += (n - self.turbo_lp) * self.turbo_amp;
+            fr += (n2 - self.turbo_lp2) * self.turbo_amp;
 
             // weather: rain / hail hiss, extra wind, thunder, hail ticks
             let w = (p.weather as usize).min(10);
             if RAIN[w] > 0.0 {
                 self.rain_lp += 0.5 * (n - self.rain_lp);
-                fx += (n - self.rain_lp) * RAIN[w] * 0.11;
+                self.rain_lp2 += 0.5 * (n2 - self.rain_lp2);
+                fl += (n - self.rain_lp) * RAIN[w] * 0.11;
+                fr += (n2 - self.rain_lp2) * RAIN[w] * 0.11;
             }
             if WINDY[w] > 0.0 {
-                fx += self.wind_b * WINDY[w] * (0.25 + 0.5 * sp);
+                fl += self.wind_b * WINDY[w] * (0.25 + 0.5 * sp);
+                fr += self.wind_b2 * WINDY[w] * (0.25 + 0.5 * sp);
             }
             if w == 2 {
                 self.thunder_t -= 1;
@@ -616,32 +748,54 @@ impl Synth {
                 self.siren_ph = (self.siren_ph + if hi { 960.0 } else { 720.0 } / sr).fract();
                 let raw = if self.siren_ph < 0.35 { 1.0 } else { -1.0 };
                 self.siren_lp += 0.25 * (raw - self.siren_lp);
-                fx += self.siren_lp * 0.06 * p.cop;
+                let pan = (self.t as f32 / sr * 0.35).sin() * 0.5;
+                let (gl, gr) = pan_gains(pan);
+                fl += self.siren_lp * 0.06 * p.cop * gl;
+                fr += self.siren_lp * 0.06 * p.cop * gr;
             }
-            // own siren of a police car, ambulance or fire engine
+            // own siren of a police car, ambulance or fire engine: three different voices
             if p.own_siren > 0 {
                 let ts = self.t as f32 / sr;
-                let f = match p.own_siren {
-                    1 => {
-                        if (ts * 2.4).fract() < 0.5 {
-                            960.0
-                        } else {
-                            720.0
-                        }
-                    }
-                    2 => {
-                        if (ts * 1.6).fract() < 0.5 {
-                            435.0
-                        } else {
-                            580.0
-                        }
-                    }
-                    _ => 500.0 + 700.0 * (1.0 - ((ts * 0.9).fract() * 2.0 - 1.0).abs()),
-                };
-                self.own_ph = (self.own_ph + f / sr).fract();
-                let raw = if self.own_ph < 0.4 { 1.0 } else { -1.0 };
-                self.own_lp += 0.25 * (raw - self.own_lp);
-                fx += self.own_lp * 0.05;
+                let x = siren(p.own_siren, ts, sr, &mut self.own_ph, &mut self.own_lp, 1.0);
+                let mut h = 0.0;
+                if p.own_siren == 3 && (ts / 6.0).fract() < 0.13 {
+                    // the fire engine adds an air-horn blast now and then
+                    self.fh1 = (self.fh1 + 196.0 / sr).fract();
+                    self.fh2 = (self.fh2 + 247.0 / sr).fract();
+                    h = ((2.0 * self.fh1 - 1.0) + 0.8 * (2.0 * self.fh2 - 1.0)) * 0.5;
+                }
+                // the narrow yelp carries less energy than the other two: a little more gain
+                let g = if p.own_siren == 2 { 0.065 } else { 0.05 };
+                fl += (x + h) * g;
+                fr += (x + h) * g;
+            }
+            // an ambulance or fire engine overtaking: louder as it nears, pitch drops once it has
+            // passed, and it sits on the side of the road it drives on
+            if p.emerg > 0.02 && p.emerg_kind > 0 {
+                let ts = self.t as f32 / sr;
+                let bend = if p.emerg_passed { 0.95 } else { 1.03 };
+                let x = siren(
+                    p.emerg_kind + 1,
+                    ts,
+                    sr,
+                    &mut self.em_ph,
+                    &mut self.em_lp,
+                    bend,
+                );
+                let (gl, gr) = pan_gains(p.emerg_pan.clamp(-0.9, 0.9));
+                fl += x * 0.07 * p.emerg * gl;
+                fr += x * 0.07 * p.emerg * gr;
+            }
+            // the player's helicopter: blade slap (about 17 beats a second) over a low rotor hum
+            if p.heli > 0 {
+                self.rot_ph = (self.rot_ph + 17.0 / sr).fract();
+                let env = (-self.rot_ph * 9.0).exp();
+                self.rot_lp += 0.08 * (n - self.rot_lp);
+                self.rot_lp2 += 0.08 * (n2 - self.rot_lp2);
+                let amp = if p.heli == 2 { 0.9 } else { 0.45 };
+                let hum = (TAU * 52.0 * self.t as f32 / sr).sin() * 0.05;
+                fl += (self.rot_lp * env * 3.0 + hum) * amp * 0.5;
+                fr += (self.rot_lp2 * env * 3.0 + hum) * amp * 0.5;
             }
             // level crossing: bell while it warns, horn while the train is on it
             if p.train > 0.05 {
@@ -655,7 +809,9 @@ impl Synth {
                     self.horn1 = (self.horn1 + 196.0 / sr).fract();
                     self.horn2 = (self.horn2 + 247.0 / sr).fract();
                     let h = (2.0 * self.horn1 - 1.0) + 0.8 * (2.0 * self.horn2 - 1.0);
-                    fx += h * 0.05 * p.train;
+                    let (gl, gr) = pan_gains(0.5);
+                    fl += h * 0.05 * p.train * gl;
+                    fr += h * 0.05 * p.train * gr;
                 }
             }
             // low fuel beeps
@@ -672,15 +828,25 @@ impl Synth {
                 self.cricket_ph = (self.cricket_ph + 4300.0 / sr).fract();
                 let gate = ((self.t as f32 / sr) * 7.0).fract() < 0.3;
                 if gate {
-                    fx += (TAU * self.cricket_ph).sin() * 0.012 * (1.0 - p.daylight / 0.3);
+                    let g = 0.012 * (1.0 - p.daylight / 0.3);
+                    fl += (TAU * self.cricket_ph).sin() * g;
+                    fr += (TAU * (self.cricket_ph + 0.31)).sin() * g * 0.8;
                 }
             }
-            // delay on the music bus
-            let d = self.delay[self.di];
-            self.delay[self.di] = music + d * 0.3;
+            // ping-pong delay on the music bus: the echoes bounce between the ears
+            let dl = self.delay[self.di];
+            let dr = self.delay_r[self.di];
+            self.delay[self.di] = ml + dr * 0.3;
+            self.delay_r[self.di] = mr + dl * 0.3;
             self.di = (self.di + 1) % self.delay.len();
-            let mix = music + d * 0.22 + fx;
-            *o = (mix * 0.95).tanh();
+            let left = ((ml + dl * 0.22 + fl) * 0.95).tanh();
+            let right = ((mr + dr * 0.22 + fr) * 0.95).tanh();
+            if stereo {
+                out[2 * fi] = left;
+                out[2 * fi + 1] = right;
+            } else {
+                out[fi] = (left + right) * 0.5;
+            }
             self.t += 1;
         }
     }

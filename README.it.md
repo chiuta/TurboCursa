@@ -19,6 +19,7 @@ Diciannove paesaggi generati: foresta, deserto, tramonto, colossali alberi-mondo
 - Modalità: `--mode campaign|timetrial|endless|rush|collector|slalom|mirror|blackout|zen`, `--cpu` (gara contro un rivale al computer), `--versus` (2 giocatori); web: `?mode=NOME`. · `--career` (divisioni, campionati e coppe, con salvataggio)
 - Demo: `--demo` fa percorrere a un pilota IA tutte le modalità a tutti i livelli di difficoltà, tappa dopo tappa (l'auto demo è protetta e non consuma carburante; non viene salvato nulla)
 - Pausa: `Esc` mette in pausa una tappa in corso (Esc riprende, Invio ricomincia); il gioco va in pausa anche quando la finestra perde il focus. `--calm` (o l'impostazione di movimento ridotto del sistema, nel browser) toglie le scosse dello schermo e addolcisce i lampi; `--help` e `--version` elencano le opzioni.
+- Suono e immagine: il suono è stereo ovunque; le sirene di polizia, ambulanza e pompieri e il rotore dell'elicottero suonano in modo diverso. `--hd` (nativo) o il pulsante `HD` / `F2` (browser) attiva un'immagine Full HD nitida: un ingrandimento del rendering 640×400 a 1920×1080, non un rendering 1080p nativo.
 
 ## Modalità di gioco
 

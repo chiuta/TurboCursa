@@ -646,18 +646,21 @@ fn weather_police_train_and_ice_sounds_are_audible_and_safe() {
     // (hiss: rms of the first difference, level: rms) over two seconds after a one-second warm-up
     let m = |p: AudioParams| {
         let mut s = Synth::new(44_100.0, 7);
-        let mut buf = vec![0.0f32; 44_100];
-        s.render(&mut buf, &p);
+        // the game plays stereo: measure the left channel of the interleaved output
+        let mut buf = vec![0.0f32; 88_200];
+        s.render_stereo(&mut buf, &p);
         let (mut hiss, mut level) = (0.0f64, 0.0f64);
         for _ in 0..2 {
-            s.render(&mut buf, &p);
+            s.render_stereo(&mut buf, &p);
             assert!(
                 buf.iter().all(|v| v.is_finite() && v.abs() <= 1.0),
                 "bounded and finite"
             );
-            for i in 1..buf.len() {
-                hiss += ((buf[i] - buf[i - 1]) as f64).powi(2);
-                level += (buf[i] as f64).powi(2);
+            let left: Vec<f32> = buf.iter().step_by(2).copied().collect();
+            for i in 1..left.len() {
+                hiss += ((left[i] - left[i - 1]) as f64).powi(2);
+                // level counts both channels: a horn or siren may sit on one side of the road
+                level += ((buf[2 * i] as f64).powi(2) + (buf[2 * i + 1] as f64).powi(2)) / 2.0;
             }
         }
         ((hiss / 88_200.0).sqrt(), (level / 88_200.0).sqrt())

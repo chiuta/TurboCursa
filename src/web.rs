@@ -1225,21 +1225,22 @@ pub extern "C" fn audio_init(sample_rate: f32) {
     }
 }
 
-/// Renders `n` mono samples with the latest game parameters; returns a pointer into wasm memory.
+/// Renders `n` stereo frames (2n interleaved samples, left first) with the latest game parameters;
+/// returns a pointer into wasm memory.
 #[no_mangle]
 pub extern "C" fn audio_fill(n: u32) -> *const f32 {
     let mut guard = APP
         .lock()
         .unwrap_or_else(std::sync::PoisonError::into_inner);
     let a = guard.as_mut().expect("init first");
-    let n = (n as usize).min(1 << 16); // hostile sizes must not exhaust wasm memory
-    if a.abuf.len() < n {
-        a.abuf.resize(n, 0.0);
+    let n = (n as usize).min(1 << 15); // hostile sizes must not exhaust wasm memory
+    if a.abuf.len() < 2 * n {
+        a.abuf.resize(2 * n, 0.0);
     }
     let p = a.aparams;
     match a.synth.as_mut() {
-        Some(s) => s.render(&mut a.abuf[..n], &p),
-        None => a.abuf[..n].fill(0.0),
+        Some(s) => s.render_stereo(&mut a.abuf[..2 * n], &p),
+        None => a.abuf[..2 * n].fill(0.0),
     }
     a.abuf.as_ptr()
 }
