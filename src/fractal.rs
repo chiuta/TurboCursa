@@ -257,6 +257,57 @@ fn branch(
     }
 }
 
+/// Fractal surface detail for a finished sprite: leaf/bark-scale mottling, fine speckle,
+/// ambient occlusion deep inside the silhouette and a lit rim on the side facing the sun.
+fn enrich(t: &mut Tex, seed: u32, mottle: f32, speckle: f32) {
+    let (w, h) = (t.w as i32, t.h as i32);
+    let alpha = |t: &Tex, x: i32, y: i32| -> f32 {
+        if x < 0 || y < 0 || x >= w || y >= h {
+            0.0
+        } else {
+            (t.px[(y * w + x) as usize] >> 24) as f32 / 255.0
+        }
+    };
+    let src = t.clone();
+    for y in 0..h {
+        for x in 0..w {
+            let c = src.px[(y * w + x) as usize];
+            let a = c >> 24;
+            if a == 0 {
+                continue;
+            }
+            // density of the silhouette around the pixel: dense interior is occluded
+            let mut dens = 0.0;
+            for (dx, dy) in [
+                (-4, 0),
+                (4, 0),
+                (0, -4),
+                (0, 4),
+                (-3, -3),
+                (3, 3),
+                (-3, 3),
+                (3, -3),
+            ] {
+                dens += alpha(&src, x + dx, y + dy);
+            }
+            dens /= 8.0;
+            let ao = 1.0 - 0.28 * dens * dens;
+            let lit = (1.0 - alpha(&src, x - 3, y - 3)) * 0.30;
+            let shadow = (1.0 - alpha(&src, x + 3, y + 3)) * 0.22;
+            let (fx, fy) = (x as f32, y as f32);
+            let m = fbm(fx * 0.22, fy * 0.22, seed, 4, 0) - 0.5;
+            let fine = h2_f(x, y, seed ^ 0xA5) - 0.5;
+            let k = ao * (1.0 + mottle * 2.0 * m + speckle * fine + lit - shadow);
+            let ch = |sh: u32| -> u32 { (((c >> sh) & 255) as f32 * k).clamp(0.0, 255.0) as u32 };
+            t.px[(y * w + x) as usize] = (a << 24) | (ch(16) << 16) | (ch(8) << 8) | ch(0);
+        }
+    }
+}
+
+fn h2_f(ix: i32, iy: i32, seed: u32) -> f32 {
+    hash2(ix, iy, seed)
+}
+
 pub fn broadleaf(seed: u64, bark: u32, l1: u32, l2: u32) -> Img {
     let mut t = Tex::new(192, 256);
     let mut rng = Rng::new(seed);
@@ -269,6 +320,7 @@ pub fn broadleaf(seed: u64, bark: u32, l1: u32, l2: u32) -> Img {
     branch(
         &mut t, &mut rng, 96.0, 252.0, a0, l0, 8.0, 7, &pal, 0.62, true,
     );
+    enrich(&mut t, seed as u32 ^ 0x51, 0.30, 0.16);
     t.into_img()
 }
 
@@ -298,6 +350,7 @@ pub fn dead_tree(seed: u64, bark: u32, glow: u32) -> Img {
         let (x, y) = (rng.range(40.0, 150.0), rng.range(40.0, 200.0));
         t.disc(x, y, 1.6, glow, 0.9);
     }
+    enrich(&mut t, seed as u32 ^ 0x51, 0.30, 0.16);
     t.into_img()
 }
 
@@ -360,6 +413,7 @@ pub fn conifer(seed: u64, bark: u32, n1: u32, n2: u32) -> Img {
         }
     }
     t.disc(top_x, 16.0, 3.0, n2, 1.0);
+    enrich(&mut t, seed as u32 ^ 0x51, 0.30, 0.16);
     t.into_img()
 }
 
@@ -389,8 +443,21 @@ pub fn rock(seed: u64, base: u32) -> Img {
             let (nx, ny) = (dx / rb_x, dy / rb_y);
             let lam = (nx * light.0 + -ny * light.1 + nz * light.2).clamp(0.0, 1.0);
             let tex = fbm(x as f32 * 0.09, y as f32 * 0.09, s ^ 99, 5, 0);
-            let k = (0.35 + 0.85 * lam) * (0.7 + 0.6 * tex);
+            // strata (warped bands), a fractal crack network and fine grain
+            let warp = 6.0 * fbm(x as f32 * 0.05, y as f32 * 0.05, s ^ 7, 3, 0);
+            let strata = (((y as f32 + warp) * 0.55).sin() * 0.5 + 0.5) * 0.18;
+            let crack = ((fbm(x as f32 * 0.07, y as f32 * 0.07, s ^ 31, 3, 0) - 0.5).abs() < 0.012)
+                as i32 as f32
+                * 0.45;
+            let grain = (hash2(x as i32, y as i32, s ^ 5) - 0.5) * 0.18;
+            let k =
+                ((0.35 + 0.85 * lam) * (0.7 + 0.6 * tex) - crack + grain + strata - 0.09).max(0.02);
             let c = mix_rgb(0x000000, base, (k).min(1.3).min(1.0));
+            // lichen: yellow-green patches on the upper, lit faces
+            let lich = ((fbm(x as f32 * 0.13, y as f32 * 0.13, s ^ 77, 4, 0) - 0.6) * 9.0)
+                .clamp(0.0, 0.6)
+                * lam;
+            let c = mix_rgb(c, 0x8CA040, lich);
             let c = if k > 1.0 {
                 mix_rgb(c, 0xFFFFFF, (k - 1.0).min(0.5))
             } else {

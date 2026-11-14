@@ -1,5 +1,19 @@
 # Changelog
 
+## 1.12.0
+
+### Added
+- **Building facades** (`micro::wall`): tileable fractal concrete with grain, panel joints, rain streaks, stains and chips, anchored to the street (distance along the block and height), faded out with distance and fog.
+- **Trees and rocks**: every generated tree and dead tree gets leaf/bark-scale mottling, fine speckle, ambient occlusion deep inside the silhouette and a lit rim on the sun side. Rocks get warped strata, a fractal crack network, grain and lichen patches on the lit faces.
+- The presentation gallery was re-rendered.
+
+### Changed
+- The picture changes again on purpose; the frame hash of `examples/framehash.rs` differs from 1.11.0.
+- Cost: about 11.5 to 12.5 ms per frame at 640x400 on the build machine (9 ms in 1.10.2); start-up to the first frame is about 470 ms, because the sprites are generated with the extra passes.
+
+### Not verified
+- Speed on other machines and in the browser. Cars, pedestrians, the sky and the HUD were not given new textures; the renderer is still 640x400, so this is more detail on a small grid, not photographic realism.
+
 ## 1.11.0
 
 ### Added

@@ -91,14 +91,51 @@ fn build(size: usize, f: &dyn Fn(f32, f32) -> (f32, f32)) -> Tex {
 }
 
 struct Set {
+    facade: Tex,
     asphalt: Tex,
     soil: Tex,
     macro_: Tex,
 }
 
+/// Value noise with separate periods per axis (for stretched streaks).
+fn tn2(x: f32, y: f32, seed: u32, px: i32, py: i32) -> f32 {
+    let (ix, iy) = (x.floor() as i32, y.floor() as i32);
+    let (fx, fy) = (smooth(x - ix as f32), smooth(y - iy as f32));
+    let (x0, x1, y0, y1) = (
+        ix.rem_euclid(px),
+        (ix + 1).rem_euclid(px),
+        iy.rem_euclid(py),
+        (iy + 1).rem_euclid(py),
+    );
+    let (a, b) = (h2(x0, y0, seed), h2(x1, y0, seed));
+    let (c, d) = (h2(x0, y1, seed), h2(x1, y1, seed));
+    let top = a + (b - a) * fx;
+    let bot = c + (d - c) * fx;
+    top + (bot - top) * fy
+}
+
 fn set() -> &'static Set {
     static S: OnceLock<Set> = OnceLock::new();
     S.get_or_init(|| Set {
+        // building facade: concrete grain, panel joints, rain streaks, stains and chips
+        facade: build(512, &|u, v| {
+            let grain = tfbm(u, v, 71, 24, 5) * 2.0 - 1.0;
+            let fine = h2((u * 512.0) as i32, (v * 512.0) as i32, 13) * 2.0 - 1.0;
+            let streak =
+                tn2(u * 96.0, v * 6.0, 72, 96, 6) * 0.6 + tn2(u * 40.0, v * 3.0, 73, 40, 3) * 0.4;
+            let streak = ((streak - 0.5) * 3.0).clamp(-1.0, 1.0);
+            let stain = tfbm(u, v, 74, 4, 4) * 2.0 - 1.0;
+            let fu = (u * 8.0).fract();
+            let fv = (v * 8.0).fract();
+            let joint =
+                (!(0.012..=0.988).contains(&fu) || !(0.012..=0.988).contains(&fv)) as i32 as f32;
+            let chip = ((tfbm(u, v, 75, 40, 2) - 0.78) * 14.0).clamp(0.0, 1.0);
+            let l = 0.28 * grain + 0.12 * fine + 0.34 * streak + 0.30 * stain
+                - 0.55 * joint
+                - 0.35 * chip;
+            let t = 0.5 * (tfbm(u, v, 76, 3, 3) * 2.0 - 1.0);
+            (l, t)
+        }),
         // asphalt: aggregate grain, pebbles, a fractal crack network and repair patches
         asphalt: build(512, &|u, v| {
             let grain = tfbm(u, v, 11, 24, 6) * 2.0 - 1.0;
@@ -288,4 +325,61 @@ fn apply(c: u32, lum: i32, tint: i32) -> u32 {
     let g = ((((c >> 8) & 255) as i32 * f) >> 8) + (tint >> 2) + add;
     let b = (((c & 255) as i32 * f) >> 8) - tint + add;
     ((r.clamp(0, 255) as u32) << 16) | ((g.clamp(0, 255) as u32) << 8) | b.clamp(0, 255) as u32
+}
+
+const K_FACADE: f32 = 128.0;
+
+/// Lay the facade texture over a building wall: a quad with vertical sides at `xa` and `xb`,
+/// bottom edge from y1 (near) to y2 (far), height `hb` road half-widths.
+#[allow(clippy::too_many_arguments)]
+pub(super) fn wall(
+    fb: &mut [u32],
+    (xa, xb): (f32, f32),
+    (y1, y2): (f32, f32),
+    (w1, w2): (f32, f32),
+    hb: f32,
+    idx: usize,
+    clip: f32,
+    fog: f32,
+) {
+    let (lo, hi) = if xa < xb { (xa, xb) } else { (xb, xa) };
+    let span = (xb - xa).abs();
+    if span < 1.0 || fog > 0.85 {
+        return;
+    }
+    let s = set();
+    let (vwi, vhi) = (vw() as i32, vh() as i32);
+    let tex = &s.facade;
+    let tpu = K_FACADE * SEG_U / span;
+    let x0 = (lo.round() as i32).max(0);
+    let x1 = (hi.round() as i32).min(vwi);
+    for x in x0..x1 {
+        let t = ((x as f32 + 0.5 - xa) / (xb - xa)).clamp(0.0, 1.0);
+        let bottom = y1 + (y2 - y1) * t;
+        let wpx = w1 + (w2 - w1) * t;
+        if wpx < 2.0 {
+            continue;
+        }
+        let top = bottom - hb * wpx;
+        let m = tpu.max(K_FACADE / wpx).max(1.0).log2();
+        let amp_f = fade(m, (tex.mips.len() - 1) as f32 - 1.0) * (1.0 - fog);
+        if amp_f <= 0.0 {
+            continue;
+        }
+        let amp = (96.0 * amp_f) as i32;
+        let mi = (m as usize).min(tex.mips.len() - 1);
+        let (size, d) = &tex.mips[mi];
+        let mask = *size as i32 - 1;
+        let sc = 1.0 / (1 << mi) as f32;
+        let tx = (((idx as f32 + t) * SEG_U * K_FACADE * sc).floor() as i32) & mask;
+        let ya = (top.round() as i32).max(0);
+        let yb = (bottom.round() as i32).min(vhi).min(clip as i32);
+        for y in ya..yb {
+            let f = (bottom - (y as f32 + 0.5)) / wpx;
+            let ty = ((f * K_FACADE * sc).floor() as i32) & mask;
+            let tv = d[ty as usize * size + tx as usize];
+            let i = y as usize * vwi as usize + x as usize;
+            fb[i] = apply(fb[i], (tv[0] as i32 * amp) >> 7, (tv[1] as i32 * amp) >> 9);
+        }
+    }
 }

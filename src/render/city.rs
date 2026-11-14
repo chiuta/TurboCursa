@@ -207,6 +207,7 @@ pub(super) fn draw_city_seg(
                 );
             }
         }
+        super::micro::wall(fb, (xa, xb), (sp.y1, sp.y2), (w1, w2), hb, idx, clip, fog_k);
         // front face of the block, where it starts
         if idx.is_multiple_of(7) {
             let xf = sp.x1 + side * w1 * 3.4;
