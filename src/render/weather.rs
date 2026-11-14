@@ -192,6 +192,8 @@ pub(super) fn fog_veil(fb: &mut [u32], col: u32, density: f32) {
     let (w, h) = (vw(), vh());
     let hz = horizon() as f32;
     let c = unpack(col);
+    let mut lut = [[0u8; 256]; 3];
+    let mut last: Option<f32> = None;
     for y in 0..h {
         let yf = y as f32;
         let a = if yf < hz {
@@ -203,14 +205,23 @@ pub(super) fn fog_veil(fb: &mut [u32], col: u32, density: f32) {
         if a < 0.01 {
             continue;
         }
+        // the blend depends only on the channel value and this row's strength: tabulate it
+        // (the rows above the horizon share one strength, so the table is reused there)
+        if last != Some(a) {
+            for (ch, t) in lut.iter_mut().enumerate() {
+                for (v, o) in t.iter_mut().enumerate() {
+                    let v = v as f32;
+                    *o = (v + (c[ch] - v) * a) as u8;
+                }
+            }
+            last = Some(a);
+        }
         let row = &mut fb[y * w..(y + 1) * w];
         for px in row.iter_mut() {
-            let o = unpack(*px);
-            *px = rgb(
-                (o[0] + (c[0] - o[0]) * a) as u8,
-                (o[1] + (c[1] - o[1]) * a) as u8,
-                (o[2] + (c[2] - o[2]) * a) as u8,
-            );
+            let o = *px;
+            *px = ((lut[0][((o >> 16) & 255) as usize] as u32) << 16)
+                | ((lut[1][((o >> 8) & 255) as usize] as u32) << 8)
+                | lut[2][(o & 255) as usize] as u32;
         }
     }
 }

@@ -292,6 +292,9 @@ pub fn post(fb: &mut [u32], p: &FxParams) {
             ]
         })
         .collect();
+    let bnz: Vec<bool> = (0..BH)
+        .map(|r| bq[r * BW..(r + 1) * BW].iter().any(|b| *b != [0, 0, 0]))
+        .collect();
     let bx0s: Vec<usize> = (0..W)
         .map(|x| (((x as f32 + 0.5) / 4.0 - 0.5).clamp(0.0, BW as f32 - 1.001)) as usize)
         .collect();
@@ -315,6 +318,7 @@ pub fn post(fb: &mut [u32], p: &FxParams) {
         .collect();
     let (src, noise, tmap, vig, bq, bx0s, fxs, cxr, off_x) =
         (&src, &noise, &tmap, &vig, &bq, &bx0s, &fxs, &cxr, &off_x);
+    let bnz = &bnz;
     par_rows(fb, W, H, &|y0, chunk| {
         let mut brow = vec![[0i32; 3]; BW];
         for (r, out) in chunk.chunks_mut(W).enumerate() {
@@ -324,7 +328,9 @@ pub fn post(fb: &mut [u32], p: &FxParams) {
             let sy = (y as i32 + shy).clamp(0, H as i32 - 1) as usize;
             let byf = ((y as f32 + 0.5) / 4.0 - 0.5).clamp(0.0, BH as f32 - 1.001);
             let (by0, fy) = (byf as usize, (byf.fract() * 256.0) as i32);
-            for i in 0..BW {
+            // most rows have no bloom at all: skip the interpolation there (same result)
+            let nob = !bnz[by0] && !bnz[by0 + 1];
+            for i in 0..if nob { 0 } else { BW } {
                 let a = bq[by0 * BW + i];
                 let b = bq[(by0 + 1) * BW + i];
                 brow[i] = [
@@ -348,16 +354,25 @@ pub fn post(fb: &mut [u32], p: &FxParams) {
                         row[(sx - off).clamp(0, wi - 1) as usize],
                     )
                 };
-                let (b0, fx) = (bx0s[x], fxs[x]);
-                let (s0, s1) = (brow[b0], brow[b0 + 1]);
-                let ir = (((cr >> 16) & 255) as i32
-                    + ((s0[0] + (((s1[0] - s0[0]) * fx) >> 8)) >> 4))
-                    .clamp(0, 1023);
-                let ig = (((cg >> 8) & 255) as i32
-                    + ((s0[1] + (((s1[1] - s0[1]) * fx) >> 8)) >> 4))
-                    .clamp(0, 1023);
-                let ib = ((cb & 255) as i32 + ((s0[2] + (((s1[2] - s0[2]) * fx) >> 8)) >> 4))
-                    .clamp(0, 1023);
+                let (ir, ig, ib) = if nob {
+                    (
+                        ((cr >> 16) & 255) as i32,
+                        ((cg >> 8) & 255) as i32,
+                        (cb & 255) as i32,
+                    )
+                } else {
+                    let (b0, fx) = (bx0s[x], fxs[x]);
+                    let (s0, s1) = (brow[b0], brow[b0 + 1]);
+                    (
+                        (((cr >> 16) & 255) as i32
+                            + ((s0[0] + (((s1[0] - s0[0]) * fx) >> 8)) >> 4))
+                            .clamp(0, 1023),
+                        (((cg >> 8) & 255) as i32 + ((s0[1] + (((s1[1] - s0[1]) * fx) >> 8)) >> 4))
+                            .clamp(0, 1023),
+                        ((cb & 255) as i32 + ((s0[2] + (((s1[2] - s0[2]) * fx) >> 8)) >> 4))
+                            .clamp(0, 1023),
+                    )
+                };
                 let v = vig[((cxr[x] + ry) as usize).min(539)];
                 let or = (tmap[0][ir as usize] as i32 * v) >> 10;
                 let og = (tmap[1][ig as usize] as i32 * v) >> 10;

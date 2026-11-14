@@ -837,13 +837,14 @@ pub(super) fn day_night(fb: &mut [u32], g: &Game) {
             let n = 1.0 + (night[i] - 1.0) * d;
             n * (1.0 + (warm[i] - 1.0) * ss * 0.55)
         });
+        // one table per channel instead of float maths on every pixel (same values)
+        let lut: [[u8; 256]; 3] =
+            std::array::from_fn(|c| std::array::from_fn(|v| (v as f32 * m[c]).min(255.0) as u8));
         for px in fb.iter_mut() {
-            let o = unpack(*px);
-            *px = rgb(
-                (o[0] * m[0]).min(255.0) as u8,
-                (o[1] * m[1]).min(255.0) as u8,
-                (o[2] * m[2]).min(255.0) as u8,
-            );
+            let o = *px;
+            *px = ((lut[0][((o >> 16) & 255) as usize] as u32) << 16)
+                | ((lut[1][((o >> 8) & 255) as usize] as u32) << 8)
+                | lut[2][(o & 255) as usize] as u32;
         }
     }
     // stars

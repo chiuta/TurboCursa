@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.10.2
+
+### Changed
+- **Less work per frame**: the night/sunset tint and the fog veil use per-channel lookup tables instead of float maths on every pixel, and the final composite skips the bloom interpolation on rows that have no bloom. Measured with callgrind on 150 frames of a stormy night stage: 22.56 to 20.43 billion instructions (about 10% fewer). A hash of 20 rendered frames over five weather/time/mode combinations (`examples/framehash.rs`) is identical to 1.10.1, so the picture did not change.
+
+### Not verified
+- Wall-clock gains on other machines (this one has two noisy cores). The remaining big costs are the final composite (about 26% of instructions), the glow effect (14%) and the sky layers (13%).
+
 ## 1.10.1
 
 ### Changed
