@@ -1,12 +1,14 @@
 //! Screenshots for the resolution comparison on the presentation page.
 //!   res_shots cand            -> /tmp/cand/NN.png (640x400 candidates) to choose scenes from
 //!   res_shots shot SEED WEATHER TIME MODE SECONDS NAME  -> /tmp/shots/NAME_<res>.png for SD and every Res
+//!   res_shots native SEED WEATHER TIME MODE SECONDS NAME -> same names, but every size is rendered natively
+//!       (finer textures and strokes) instead of being an upscale of the 640x400 picture
 use turbocursa::ace::Ace;
 use turbocursa::hd::{Res, Upscaler};
 use turbocursa::share::StageCode;
 use turbocursa::{render, H, W};
 
-fn drive(seed: u32, weather: u8, time: u8, mode: u8, secs: f32) -> Vec<u32> {
+fn play(seed: u32, weather: u8, time: u8, mode: u8, secs: f32) -> turbocursa::game::Game {
     let mut g = StageCode {
         seed,
         weather,
@@ -21,6 +23,11 @@ fn drive(seed: u32, weather: u8, time: u8, mode: u8, secs: f32) -> Vec<u32> {
         let i = ace.input(&g);
         g.update(1.0 / 60.0, &i);
     }
+    g
+}
+
+fn drive(seed: u32, weather: u8, time: u8, mode: u8, secs: f32) -> Vec<u32> {
+    let g = play(seed, weather, time, mode, secs);
     let mut fb = vec![0u32; W * H];
     render::render(&g, &mut fb);
     fb
@@ -30,6 +37,31 @@ fn main() {
     let a: Vec<String> = std::env::args().collect();
     std::fs::create_dir_all("/tmp/cand").unwrap();
     std::fs::create_dir_all("/tmp/shots").unwrap();
+    if a[1] == "native" {
+        let p = |i: usize| a[i].parse::<f32>().unwrap();
+        let g = play(p(2) as u32, p(3) as u8, p(4) as u8, p(5) as u8, p(6));
+        let name = &a[7];
+        let mut sd = vec![0u32; W * H];
+        render::render(&g, &mut sd);
+        std::fs::write(
+            format!("/tmp/shots/{name}_sd.png"),
+            turbocursa::png::encode(&sd, W, H),
+        )
+        .unwrap();
+        for res in Res::ALL {
+            let (_, fh) = res.frame();
+            let pw = fh * 8 / 5;
+            let mut fb = vec![0u32; pw * fh];
+            render::render_view(&g, &mut fb, pw, fh);
+            let tag = format!("{:?}", res).to_lowercase();
+            std::fs::write(
+                format!("/tmp/shots/{name}_{tag}.png"),
+                turbocursa::png::encode(&fb, pw, fh),
+            )
+            .unwrap();
+        }
+        return;
+    }
     if a[1] == "cand" {
         for (n, (seed, weather, time, mode)) in [
             (3u32, 1u8, 2u8, 0u8),

@@ -1,5 +1,19 @@
 # Changelog
 
+## 1.13.0
+
+### Added
+- **Finer textures at high native resolution**: when `render_view` draws at twice the base size or more, the road, ground and facade textures come from a second set (1024-pixel tiles, twice the texel density, one more octave of grain), built on first use. Edges and strokes are drawn at the real size, so natively rendered 4K and 8K frames show asphalt cracks, grain and clean diagonals that an enlarged 640x400 picture cannot.
+- `examples/res_shots.rs native ...` renders every resolution natively; the gallery on the presentation page uses it. `examples/special_shots.rs` renders portraits of the twelve special vehicles (also on the page, in a new section in 8 languages).
+- Presentation page: contrast of the gallery and video-chapter buttons fixed in light and dark mode.
+
+### Not changed
+- The real-time game still renders at 640x400 and enlarges to HD to 8K (a native 1728x1080 frame takes about 100 ms on one thread, far from 60 fps). The extra detail therefore appears in natively rendered captures, not in the live window.
+- Cars, special vehicles and the HUD are still built from simple shapes, so at high native resolution they look clean but plain.
+
+### Not verified
+- Speed on other machines; native frames at 4K and 8K take seconds.
+
 ## 1.12.0
 
 ### Added

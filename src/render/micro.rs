@@ -91,6 +91,8 @@ fn build(size: usize, f: &dyn Fn(f32, f32) -> (f32, f32)) -> Tex {
 }
 
 struct Set {
+    /// texel density multiplier (2 for the 1024-pixel set used at high resolutions)
+    kmul: f32,
     facade: Tex,
     asphalt: Tex,
     soil: Tex,
@@ -114,13 +116,14 @@ fn tn2(x: f32, y: f32, seed: u32, px: i32, py: i32) -> f32 {
     top + (bot - top) * fy
 }
 
-fn set() -> &'static Set {
-    static S: OnceLock<Set> = OnceLock::new();
-    S.get_or_init(|| Set {
+fn make_set(size: usize, kmul: f32, ex: u32) -> Set {
+    let sz = size as f32;
+    Set {
+        kmul,
         // building facade: concrete grain, panel joints, rain streaks, stains and chips
-        facade: build(512, &|u, v| {
-            let grain = tfbm(u, v, 71, 24, 5) * 2.0 - 1.0;
-            let fine = h2((u * 512.0) as i32, (v * 512.0) as i32, 13) * 2.0 - 1.0;
+        facade: build(size, &|u, v| {
+            let grain = tfbm(u, v, 71, 24, 5 + ex) * 2.0 - 1.0;
+            let fine = h2((u * sz) as i32, (v * sz) as i32, 13) * 2.0 - 1.0;
             let streak =
                 tn2(u * 96.0, v * 6.0, 72, 96, 6) * 0.6 + tn2(u * 40.0, v * 3.0, 73, 40, 3) * 0.4;
             let streak = ((streak - 0.5) * 3.0).clamp(-1.0, 1.0);
@@ -137,9 +140,9 @@ fn set() -> &'static Set {
             (l, t)
         }),
         // asphalt: aggregate grain, pebbles, a fractal crack network and repair patches
-        asphalt: build(512, &|u, v| {
-            let grain = tfbm(u, v, 11, 24, 6) * 2.0 - 1.0;
-            let fine = h2((u * 512.0) as i32, (v * 512.0) as i32, 5);
+        asphalt: build(size, &|u, v| {
+            let grain = tfbm(u, v, 11, 24, 6 + ex) * 2.0 - 1.0;
+            let fine = h2((u * sz) as i32, (v * sz) as i32, 5);
             let pebble = if fine > 0.965 {
                 1.0
             } else if fine < 0.04 {
@@ -161,24 +164,43 @@ fn set() -> &'static Set {
             (l, 0.0)
         }),
         // soil and turf: warped multi-octave fractal with fine blades
-        soil: build(512, &|u, v| {
+        soil: build(size, &|u, v| {
             let wu = u + 0.08 * (tfbm(u, v, 51, 6, 4) - 0.5);
             let wv = v + 0.08 * (tfbm(u, v, 52, 6, 4) - 0.5);
-            let big = tfbm(wu, wv, 53, 8, 6) * 2.0 - 1.0;
-            let blade = h2((u * 512.0) as i32, (v * 512.0) as i32, 9) * 2.0 - 1.0;
+            let big = tfbm(wu, wv, 53, 8, 6 + ex) * 2.0 - 1.0;
+            let blade = h2((u * sz) as i32, (v * sz) as i32, 9) * 2.0 - 1.0;
             let tuft = ((tfbm(u, v, 54, 64, 2) - 0.55) * 8.0).clamp(-1.0, 1.0);
             let tint = tfbm(u, v, 55, 5, 3) * 2.0 - 1.0;
             (0.55 * big + 0.30 * blade + 0.35 * tuft, 0.4 * tint)
         }),
         // large-scale mottling that survives to the far distance
-        macro_: build(256, &|u, v| {
+        macro_: build(size / 2, &|u, v| {
             let a = tfbm(u, v, 61, 3, 6) * 2.0 - 1.0;
             let t = tfbm(u, v, 62, 2, 4) * 2.0 - 1.0;
             (0.8 * a, 0.7 * t)
         }),
-    })
+    }
 }
 
+fn set() -> &'static Set {
+    static S: OnceLock<Set> = OnceLock::new();
+    S.get_or_init(|| make_set(512, 1.0, 0))
+}
+
+/// Finer set (1024-pixel tiles, twice the texel density, one more octave); built on first use
+/// by renders at high native resolution.
+fn hi() -> &'static Set {
+    static S: OnceLock<Set> = OnceLock::new();
+    S.get_or_init(|| make_set(1024, 2.0, 1))
+}
+
+fn pick() -> &'static Set {
+    if super::vk() >= 2.0 {
+        hi()
+    } else {
+        set()
+    }
+}
 /// Texels per road half-width (lateral) for each texture.
 const K_ASPHALT: f32 = 192.0;
 const K_SOIL: f32 = 96.0;
@@ -263,7 +285,8 @@ pub(super) fn strip(
     if y1 - y2 <= 0.0 || (!road && ground == Ground::None) {
         return;
     }
-    let s = set();
+    let s = pick();
+    let (ka, ks) = (K_ASPHALT * s.kmul, K_SOIL * s.kmul);
     let rowh = (y1 - y2).max(1.0);
     let ya = y2.round() as i32;
     let ye = y1.min(maxy).round() as i32;
@@ -280,8 +303,8 @@ pub(super) fn strip(
         let xl = ((xc - w).round() as i32).clamp(0, vw);
         let xr = ((xc + w).round() as i32).clamp(0, vw);
         if road {
-            if let Some(l) = look(&s.asphalt, K_ASPHALT, w, rowh, 118) {
-                let mut ly = Lay::new(&s.asphalt, l, K_ASPHALT, w, xc, xl, v);
+            if let Some(l) = look(&s.asphalt, ka, w, rowh, 118) {
+                let mut ly = Lay::new(&s.asphalt, l, ka, w, xc, xl, v);
                 for px in &mut row[xl as usize..xr as usize] {
                     let tx = ly.next();
                     *px = apply(*px, (tx[0] as i32 * ly.amp) >> 7, 0);
@@ -289,14 +312,14 @@ pub(super) fn strip(
             }
         }
         if ground != Ground::None {
-            let micro = look(&s.soil, K_SOIL, w, rowh, 84);
+            let micro = look(&s.soil, ks, w, rowh, 84);
             let mac = look(&s.macro_, K_MACRO, w, rowh, 60);
             let tint_k = if ground == Ground::LumTint { 24 } else { 0 };
             for (a, b) in [(0, xl), (xr, vw)] {
                 if a >= b {
                     continue;
                 }
-                let mut mi = micro.map(|l| Lay::new(&s.soil, l, K_SOIL, w, xc, a, v));
+                let mut mi = micro.map(|l| Lay::new(&s.soil, l, ks, w, xc, a, v));
                 let mut ma = mac.map(|l| Lay::new(&s.macro_, l, K_MACRO, w, xc, a, v));
                 for px in &mut row[a as usize..b as usize] {
                     let (mut lum, mut tint) = (0i32, 0i32);
@@ -347,10 +370,11 @@ pub(super) fn wall(
     if span < 1.0 || fog > 0.85 {
         return;
     }
-    let s = set();
+    let s = pick();
+    let kf = K_FACADE * s.kmul;
     let (vwi, vhi) = (vw() as i32, vh() as i32);
     let tex = &s.facade;
-    let tpu = K_FACADE * SEG_U / span;
+    let tpu = kf * SEG_U / span;
     let x0 = (lo.round() as i32).max(0);
     let x1 = (hi.round() as i32).min(vwi);
     for x in x0..x1 {
@@ -361,7 +385,7 @@ pub(super) fn wall(
             continue;
         }
         let top = bottom - hb * wpx;
-        let m = tpu.max(K_FACADE / wpx).max(1.0).log2();
+        let m = tpu.max(kf / wpx).max(1.0).log2();
         let amp_f = fade(m, (tex.mips.len() - 1) as f32 - 1.0) * (1.0 - fog);
         if amp_f <= 0.0 {
             continue;
@@ -371,12 +395,12 @@ pub(super) fn wall(
         let (size, d) = &tex.mips[mi];
         let mask = *size as i32 - 1;
         let sc = 1.0 / (1 << mi) as f32;
-        let tx = (((idx as f32 + t) * SEG_U * K_FACADE * sc).floor() as i32) & mask;
+        let tx = (((idx as f32 + t) * SEG_U * kf * sc).floor() as i32) & mask;
         let ya = (top.round() as i32).max(0);
         let yb = (bottom.round() as i32).min(vhi).min(clip as i32);
         for y in ya..yb {
             let f = (bottom - (y as f32 + 0.5)) / wpx;
-            let ty = ((f * K_FACADE * sc).floor() as i32) & mask;
+            let ty = ((f * kf * sc).floor() as i32) & mask;
             let tv = d[ty as usize * size + tx as usize];
             let i = y as usize * vwi as usize + x as usize;
             fb[i] = apply(fb[i], (tv[0] as i32 * amp) >> 7, (tv[1] as i32 * amp) >> 9);
