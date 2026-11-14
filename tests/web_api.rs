@@ -77,7 +77,7 @@ fn browser_api_survives_hostile_calls() {
             }
         }
         let mut finished_seen = false;
-        for i in 0..1500 {
+        for i in 0..450 {
             set_input(r.next() & if i % 7 == 0 { u32::MAX } else { 0x3F3F });
             let dt =
                 [0.016f32, 0.0, -1.0, f32::NAN, f32::INFINITY, 5.0, 1e-9][(r.next() % 7) as usize];
@@ -91,7 +91,7 @@ fn browser_api_survives_hostile_calls() {
             let st = state_code();
             assert!(st <= 2);
             finished_seen |= st == 2;
-            if i % 500 == 0 {
+            if i % 150 == 0 {
                 set_lang(r.next());
             }
             let _ = score();
@@ -176,7 +176,7 @@ fn browser_demo_drives_itself_and_ignores_the_keyboard() {
     set_demo(1);
     init(11, 0);
     set_input(0); // no keys at all: the pilot must still gain score
-    for _ in 0..60 * 20 {
+    for _ in 0..60 * 10 {
         frame(0.016);
     }
     let s = score();

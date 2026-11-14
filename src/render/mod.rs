@@ -392,7 +392,12 @@ fn glow(fb: &mut [u32], cx: f32, cy: f32, rx: f32, ry: f32, col: u32, strength: 
     let x1 = ((cx + rx).ceil() as i32).min(vw() as i32);
     let w = vw();
     let (kx, ky) = (1.0 / rx, 1.0 / ry);
-    let cs = [c[0] * strength, c[1] * strength, c[2] * strength];
+    // fixed point: colour * strength in 1/256 units, falloff in 1/256 steps
+    let cs = [
+        (c[0] * strength * 256.0) as i32,
+        (c[1] * strength * 256.0) as i32,
+        (c[2] * strength * 256.0) as i32,
+    ];
     for y in y0..y1 {
         let dy = ((y as f32 + 0.5) - cy) * ky;
         let dy2 = dy * dy;
@@ -404,17 +409,22 @@ fn glow(fb: &mut [u32], cx: f32, cy: f32, rx: f32, ry: f32, col: u32, strength: 
         let xa = ((cx - half).floor() as i32).max(x0);
         let xb = ((cx + half).ceil() as i32).min(x1);
         let row = &mut fb[y as usize * w..(y as usize + 1) * w];
-        for x in xa..xb {
-            let dx = ((x as f32 + 0.5) - cx) * kx;
+        let mut dx = ((xa.clamp(0, w as i32) as f32 + 0.5) - cx) * kx;
+        let lo = xa.clamp(0, w as i32);
+        let hi = xb.clamp(lo, w as i32);
+        for px in &mut row[lo as usize..hi as usize] {
             let d = dx * dx + dy2;
+            dx += kx;
             if d < 1.0 {
                 let v = 1.0 - d;
-                let v = v * v;
-                let px = &mut row[x as usize];
+                let v8 = (v * v * 256.0) as i32;
+                if v8 == 0 {
+                    continue;
+                }
                 let o = *px;
-                let r = (((o >> 16) & 255) as f32 + cs[0] * v).min(255.0) as u32;
-                let g = (((o >> 8) & 255) as f32 + cs[1] * v).min(255.0) as u32;
-                let b = ((o & 255) as f32 + cs[2] * v).min(255.0) as u32;
+                let r = (((o >> 16) & 255) as i32 + ((cs[0] * v8) >> 16)).min(255) as u32;
+                let g = (((o >> 8) & 255) as i32 + ((cs[1] * v8) >> 16)).min(255) as u32;
+                let b = ((o & 255) as i32 + ((cs[2] * v8) >> 16)).min(255) as u32;
                 *px = (r << 16) | (g << 8) | b;
             }
         }

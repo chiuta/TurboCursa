@@ -67,6 +67,35 @@ fn box_blur(
     std::mem::swap(buf, tmp);
 }
 
+/// Number of worker threads for the per-row passes (1 in the browser, which has no threads).
+fn workers() -> usize {
+    #[cfg(target_arch = "wasm32")]
+    {
+        1
+    }
+    #[cfg(not(target_arch = "wasm32"))]
+    {
+        std::thread::available_parallelism()
+            .map_or(1, |n| n.get())
+            .clamp(1, 4)
+    }
+}
+
+/// Runs `work(first_row, rows)` over horizontal bands of `fb`, on several threads when it pays.
+fn par_rows(fb: &mut [u32], w: usize, h: usize, work: &(dyn Fn(usize, &mut [u32]) + Sync)) {
+    let nt = workers();
+    if nt == 1 || h < 64 {
+        work(0, &mut fb[..w * h]);
+        return;
+    }
+    let band = h.div_ceil(nt);
+    std::thread::scope(|sc| {
+        for (ci, chunk) in fb[..w * h].chunks_mut(band * w).enumerate() {
+            sc.spawn(move || work(ci * band, chunk));
+        }
+    });
+}
+
 pub fn post(fb: &mut [u32], p: &FxParams) {
     let (W, H) = (p.w, p.h);
     let K = (W as f32 / 320.0).min(H as f32 / 200.0);
@@ -122,33 +151,37 @@ pub fn post(fb: &mut [u32], p: &FxParams) {
                     * W;
             }
         }
-        for y in 0..H {
-            for x in 0..W {
-                let r2 = colx2[x] + rowy2[y];
-                if r2 < 0.1 {
-                    continue;
+        let (sxs, sys, src, colx2, rowy2) = (&sxs, &sys, &src, &colx2, &rowy2);
+        par_rows(fb, W, H, &|y0, chunk| {
+            for (r, out) in chunk.chunks_mut(W).enumerate() {
+                let y = y0 + r;
+                for x in 0..W {
+                    let r2 = colx2[x] + rowy2[y];
+                    if r2 < 0.1 {
+                        continue;
+                    }
+                    let m = (((r2 - 0.1) * 0.7).clamp(0.0, 0.6) * 256.0) as i32;
+                    let o = src[y * W + x];
+                    let (or, og, ob) = (
+                        ((o >> 16) & 255) as i32,
+                        ((o >> 8) & 255) as i32,
+                        (o & 255) as i32,
+                    );
+                    let (mut sr, mut sg, mut sb) = (or, og, ob);
+                    for t in 0..4 {
+                        let c = src[sys[t][y] + sxs[t][x]];
+                        sr += ((c >> 16) & 255) as i32;
+                        sg += ((c >> 8) & 255) as i32;
+                        sb += (c & 255) as i32;
+                    }
+                    let (ar, ag, ab) = ((sr * 51) >> 8, (sg * 51) >> 8, (sb * 51) >> 8);
+                    let r = or + (((ar - or) * m) >> 8);
+                    let g = og + (((ag - og) * m) >> 8);
+                    let b = ob + (((ab - ob) * m) >> 8);
+                    out[x] = ((r as u32) << 16) | ((g as u32) << 8) | b as u32;
                 }
-                let m = (((r2 - 0.1) * 0.7).clamp(0.0, 0.6) * 256.0) as i32;
-                let o = src[y * W + x];
-                let (or, og, ob) = (
-                    ((o >> 16) & 255) as i32,
-                    ((o >> 8) & 255) as i32,
-                    (o & 255) as i32,
-                );
-                let (mut sr, mut sg, mut sb) = (or, og, ob);
-                for t in 0..4 {
-                    let c = src[sys[t][y] + sxs[t][x]];
-                    sr += ((c >> 16) & 255) as i32;
-                    sg += ((c >> 8) & 255) as i32;
-                    sb += (c & 255) as i32;
-                }
-                let (ar, ag, ab) = ((sr * 51) >> 8, (sg * 51) >> 8, (sb * 51) >> 8);
-                let r = or + (((ar - or) * m) >> 8);
-                let g = og + (((ag - og) * m) >> 8);
-                let b = ob + (((ab - ob) * m) >> 8);
-                fb[y * W + x] = ((r as u32) << 16) | ((g as u32) << 8) | b as u32;
             }
-        }
+        });
     }
 
     // 3. bloom: bright pass at 1/4 resolution (4 taps per cell), blurred twice
@@ -280,56 +313,62 @@ pub fn post(fb: &mut [u32], p: &FxParams) {
             (nx * ca_amt) as i32
         })
         .collect();
-    let mut brow = vec![[0i32; 3]; BW];
-    for y in 0..H {
-        let ny = (y as f32 / H as f32 - 0.5) * 2.0;
-        let ry = (ny * ny * 256.0) as i32;
-        let sy = (y as i32 + shy).clamp(0, H as i32 - 1) as usize;
-        let byf = ((y as f32 + 0.5) / 4.0 - 0.5).clamp(0.0, BH as f32 - 1.001);
-        let (by0, fy) = (byf as usize, (byf.fract() * 256.0) as i32);
-        for i in 0..BW {
-            let a = bq[by0 * BW + i];
-            let b = bq[(by0 + 1) * BW + i];
-            brow[i] = [
-                a[0] + (((b[0] - a[0]) * fy) >> 8),
-                a[1] + (((b[1] - a[1]) * fy) >> 8),
-                a[2] + (((b[2] - a[2]) * fy) >> 8),
-            ];
+    let (src, noise, tmap, vig, bq, bx0s, fxs, cxr, off_x) =
+        (&src, &noise, &tmap, &vig, &bq, &bx0s, &fxs, &cxr, &off_x);
+    par_rows(fb, W, H, &|y0, chunk| {
+        let mut brow = vec![[0i32; 3]; BW];
+        for (r, out) in chunk.chunks_mut(W).enumerate() {
+            let y = y0 + r;
+            let ny = (y as f32 / H as f32 - 0.5) * 2.0;
+            let ry = (ny * ny * 256.0) as i32;
+            let sy = (y as i32 + shy).clamp(0, H as i32 - 1) as usize;
+            let byf = ((y as f32 + 0.5) / 4.0 - 0.5).clamp(0.0, BH as f32 - 1.001);
+            let (by0, fy) = (byf as usize, (byf.fract() * 256.0) as i32);
+            for i in 0..BW {
+                let a = bq[by0 * BW + i];
+                let b = bq[(by0 + 1) * BW + i];
+                brow[i] = [
+                    a[0] + (((b[0] - a[0]) * fy) >> 8),
+                    a[1] + (((b[1] - a[1]) * fy) >> 8),
+                    a[2] + (((b[2] - a[2]) * fy) >> 8),
+                ];
+            }
+            let row = &src[sy * W..(sy + 1) * W];
+            let nrow = &noise[((y + noy) & 255) * 256..((y + noy) & 255) * 256 + 256];
+            for x in 0..W {
+                let sx = (x as i32 + shx).clamp(0, wi - 1);
+                let off = off_x[x];
+                let (cr, cg, cb) = if off == 0 {
+                    let c = row[sx as usize];
+                    (c, c, c)
+                } else {
+                    (
+                        row[(sx + off).clamp(0, wi - 1) as usize],
+                        row[sx as usize],
+                        row[(sx - off).clamp(0, wi - 1) as usize],
+                    )
+                };
+                let (b0, fx) = (bx0s[x], fxs[x]);
+                let (s0, s1) = (brow[b0], brow[b0 + 1]);
+                let ir = (((cr >> 16) & 255) as i32
+                    + ((s0[0] + (((s1[0] - s0[0]) * fx) >> 8)) >> 4))
+                    .clamp(0, 1023);
+                let ig = (((cg >> 8) & 255) as i32
+                    + ((s0[1] + (((s1[1] - s0[1]) * fx) >> 8)) >> 4))
+                    .clamp(0, 1023);
+                let ib = ((cb & 255) as i32 + ((s0[2] + (((s1[2] - s0[2]) * fx) >> 8)) >> 4))
+                    .clamp(0, 1023);
+                let v = vig[((cxr[x] + ry) as usize).min(539)];
+                let or = (tmap[0][ir as usize] as i32 * v) >> 10;
+                let og = (tmap[1][ig as usize] as i32 * v) >> 10;
+                let ob = (tmap[2][ib as usize] as i32 * v) >> 10;
+                let lum = (77 * or + 150 * og + 29 * ob) >> 8;
+                let g = nrow[(x + nox) & 255];
+                let sat = |o: i32| ((lum + (((o - lum) * 287) >> 8) + g).clamp(0, 1023)) >> 2;
+                out[x] = ((sat(or) as u32) << 16) | ((sat(og) as u32) << 8) | sat(ob) as u32;
+            }
         }
-        let row = &src[sy * W..(sy + 1) * W];
-        let nrow = &noise[((y + noy) & 255) * 256..((y + noy) & 255) * 256 + 256];
-        let out = &mut fb[y * W..(y + 1) * W];
-        for x in 0..W {
-            let sx = (x as i32 + shx).clamp(0, wi - 1);
-            let off = off_x[x];
-            let (cr, cg, cb) = if off == 0 {
-                let c = row[sx as usize];
-                (c, c, c)
-            } else {
-                (
-                    row[(sx + off).clamp(0, wi - 1) as usize],
-                    row[sx as usize],
-                    row[(sx - off).clamp(0, wi - 1) as usize],
-                )
-            };
-            let (b0, fx) = (bx0s[x], fxs[x]);
-            let (s0, s1) = (brow[b0], brow[b0 + 1]);
-            let ir = (((cr >> 16) & 255) as i32 + ((s0[0] + (((s1[0] - s0[0]) * fx) >> 8)) >> 4))
-                .clamp(0, 1023);
-            let ig = (((cg >> 8) & 255) as i32 + ((s0[1] + (((s1[1] - s0[1]) * fx) >> 8)) >> 4))
-                .clamp(0, 1023);
-            let ib =
-                ((cb & 255) as i32 + ((s0[2] + (((s1[2] - s0[2]) * fx) >> 8)) >> 4)).clamp(0, 1023);
-            let v = vig[((cxr[x] + ry) as usize).min(539)];
-            let or = (tmap[0][ir as usize] as i32 * v) >> 10;
-            let og = (tmap[1][ig as usize] as i32 * v) >> 10;
-            let ob = (tmap[2][ib as usize] as i32 * v) >> 10;
-            let lum = (77 * or + 150 * og + 29 * ob) >> 8;
-            let g = nrow[(x + nox) & 255];
-            let sat = |o: i32| ((lum + (((o - lum) * 287) >> 8) + g).clamp(0, 1023)) >> 2;
-            out[x] = ((sat(or) as u32) << 16) | ((sat(og) as u32) << 8) | sat(ob) as u32;
-        }
-    }
+    });
 }
 
 /// Film grain in 1/1023 units (noise is -0.5..0.5, amplitude 0.02).

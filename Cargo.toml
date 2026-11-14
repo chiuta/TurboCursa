@@ -1,6 +1,6 @@
 [package]
 name = "turbocursa"
-version = "1.10.0"
+version = "1.10.1"
 edition = "2021"
 description = "Clean-room pseudo-3D arcade racing game: original code, art and name"
 license = "MIT"
@@ -30,3 +30,4 @@ path = "src/bin/dump.rs"
 opt-level = 3
 lto = true
 codegen-units = 1
+strip = true

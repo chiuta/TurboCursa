@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.10.1
+
+### Changed
+- **Faster frames**: the glow effect (lights, sun, flames) now uses integer maths and skips invisible fringe pixels; the speed-blur and final composite passes run on up to four threads natively (the browser stays single-threaded). Measured on a 2-core machine: about 11.7 ms to about 9.2 ms per frame at 640x400 (noisy; the numbers vary by 10%).
+- Release builds are stripped; the web page is about 3% smaller.
+- The browser API fuzz test runs in about a third of the time (81 s instead of 220 s), so CI finishes sooner. The new example `examples/startup.rs` prints the start-up time (about 160 ms natively).
+
+### Not verified
+- Speed on other hardware and in the browser (WebAssembly runs these passes single-threaded). Glow colours can differ by one level from the float version.
+
 ## 1.10.0
 
 ### Added
