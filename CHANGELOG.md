@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.9.0
+
+### Added
+- **Ten more special vehicles**, joining the ambulance and fire engine: snowplough (only in snow, blizzard or glaze, otherwise a street sweeper), tow truck, road-works truck with an arrow board, street sweeper, armoured cash van, school bus, taxi, army truck, ice-cream van and a slow tractor in the right lane ahead. Each has its own picture and sound (diesel rumble, beeps, horns, a jingle, the putt of a tractor). Only the ambulance and fire engine are emergencies (banner, "Move over", good-driver bonus); the others just share the road.
+- **2K, 3K, 4K and 8K output**: `--res hd|2k|3k|4k|8k` natively (`--hd` still means Full HD), and in the browser the `HD` button or `F2` cycles SD, HD, 2K, 3K, 4K and 8K (remembered, also `?res=4k`). Like Full HD these are sharp upscales of the 640x400 picture, not native rendering. The upscaler now uses several threads: about 3 ms (2K), 6 ms (4K) and 21 ms (8K) per frame on a 2-core machine, before the window system draws it.
+
+### Not verified
+- Frame rates at 4K/8K on real displays and GPUs (browser measured only in software-rendered Chrome: SD 51, HD 35, 2K 25, 3K 21, 4K 17, 8K 7 fps there); sounds of the new vehicles only as generated signal.
+
 ## 1.8.0
 
 ### Added

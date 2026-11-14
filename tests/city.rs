@@ -318,8 +318,11 @@ fn an_ambulance_overtakes_and_making_room_pays() {
     place(&mut g, z, 0.0, 0.0, 6000.0);
     step(&mut g, 2, true);
     assert_eq!(g.emerg.len(), 1);
-    let kind_ok = g.emerg[0].kind <= 1;
-    assert!(kind_ok);
+    // the spawn is random among all special vehicles: this test is about the sirens
+    if g.emerg[0].kind > 1 {
+        g.emerg.clear();
+        g.spawn_special(0, -11000.0);
+    }
     let (s0, mult) = (g.score, g.civic_mult());
     for _ in 0..60 * 16 {
         g.speed = 6000.0;
@@ -347,6 +350,10 @@ fn blocking_an_ambulance_is_an_offence() {
     place(&mut g, z, 0.0, 0.0, 3000.0);
     step(&mut g, 2, true);
     assert_eq!(g.emerg.len(), 1);
+    if g.emerg[0].kind > 1 {
+        g.emerg.clear();
+        g.spawn_special(0, -3000.0);
+    }
     // the siren is right behind: stay in its lane at a lower speed
     let pz = g.pos + PLAYER_Z;
     for _ in 0..60 * 20 {

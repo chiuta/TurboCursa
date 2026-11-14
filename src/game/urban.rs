@@ -578,15 +578,33 @@ impl Game {
             && !in_jam
             && self.city.scenes.iter().all(|&z| (z - pz).abs() > 12000.0)
         {
-            let kind = (self.fx_rng.f() < 0.45) as u8;
+            // ambulances and fire engines are the most common; the snowplough needs snow
+            const POOL: [u8; 16] = [0, 0, 0, 1, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 11];
+            let mut kind = POOL[(self.fx_rng.f() * POOL.len() as f32) as usize % POOL.len()];
+            if kind == 2
+                && !matches!(
+                    self.weather,
+                    crate::env::Weather::Snow
+                        | crate::env::Weather::Blizzard
+                        | crate::env::Weather::Glaze
+                )
+            {
+                kind = 5;
+            }
+            let siren = kind <= 1;
+            let tractor = kind == 11;
             self.emerg.push(Emerg {
                 kind,
-                z: pz - 11000.0,
-                x: 0.0,
-                speed: (self.speed * 1.15).clamp(MAX_SPEED * 0.62, MAX_SPEED * 0.9),
-                target: 0.0,
+                z: if tractor { pz + 16000.0 } else { pz - 11000.0 },
+                x: if tractor { 0.66 } else { 0.0 },
+                speed: if tractor {
+                    MAX_SPEED * 0.2
+                } else {
+                    (self.speed * 1.15).clamp(MAX_SPEED * 0.62, MAX_SPEED * 0.9)
+                },
+                target: if tractor { 0.66 } else { 0.0 },
                 passed: false,
-                warned: false,
+                warned: !siren,
             });
             self.next_emerg = self.elapsed + 40.0 + self.fx_rng.f() * 25.0;
         }
@@ -596,7 +614,7 @@ impl Game {
         while i < self.emerg.len() {
             let mut e = self.emerg[i];
             let d = wrap(pz - e.z, len); // > 0: behind the player
-            if d > 2500.0 {
+            if d > 2500.0 && e.kind != 11 {
                 // pick a lane away from the player and free of traffic
                 let mut best = (f32::MIN, 0.0f32);
                 for lane in LANES {
@@ -620,7 +638,12 @@ impl Game {
                     self.banner_t = 1.8;
                 }
             }
-            if d > 0.0 && d < 2400.0 && (self.x - e.x).abs() < 0.32 && self.speed < e.speed {
+            if e.kind <= 1
+                && d > 0.0
+                && d < 2400.0
+                && (self.x - e.x).abs() < 0.32
+                && self.speed < e.speed
+            {
                 blocked = true;
             }
             if dz.abs() < SEG_LEN * 0.8
@@ -639,14 +662,19 @@ impl Game {
                 self.burst_sparks();
                 e.passed = true;
             }
-            if !e.passed && dz > SEG_LEN {
+            if e.kind == 11 {
+                // the tractor is ahead and slow: it is passed once it is behind you
+                if !e.passed && dz < -SEG_LEN {
+                    e.passed = true;
+                }
+            } else if !e.passed && dz > SEG_LEN {
                 e.passed = true;
-                if !zen {
+                if !zen && e.kind <= 1 {
                     self.emerg_passed += 1;
                     self.good_act(500, 2.0, "GOOD DRIVER");
                 }
             }
-            if dz > 26000.0 {
+            if dz > 26000.0 || (e.kind == 11 && dz < -9000.0) {
                 self.emerg.remove(i);
                 continue;
             }
@@ -666,6 +694,26 @@ impl Game {
         } else {
             self.block_t = (self.block_t - dt).max(0.0);
         }
+    }
+
+    /// Puts a special vehicle (kind, see `Emerg`) `dist` ahead of the player (negative: behind).
+    /// Used by tests and tools.
+    pub fn spawn_special(&mut self, kind: u8, dist: f32) {
+        let pz = self.pos + PLAYER_Z;
+        let lane = if kind == 11 { 0.66 } else { 0.0 };
+        self.emerg.push(Emerg {
+            kind,
+            z: pz + dist,
+            x: lane,
+            speed: if kind == 11 {
+                MAX_SPEED * 0.2
+            } else {
+                MAX_SPEED * 0.7
+            },
+            target: lane,
+            passed: false,
+            warned: true,
+        });
     }
 
     /// No animals wander through the cities; the proving ground's content is (re)placed.

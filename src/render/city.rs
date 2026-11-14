@@ -885,6 +885,341 @@ pub(super) fn draw_emergency(
     }
 }
 
+/// The other special vehicles seen from behind (kinds 2..=11, see `Emerg`): snowplough, tow truck,
+/// road-works truck, street sweeper, cash van, school bus, taxi, army truck, ice-cream van, tractor.
+pub(super) fn draw_other_special(
+    fb: &mut [u32],
+    cx: f32,
+    by: f32,
+    w: f32,
+    kind: u8,
+    t: f32,
+    clip: f32,
+) {
+    if w < 1.5 {
+        return;
+    }
+    let amber = rgb(255, 176, 0);
+    let dark = rgb(28, 30, 38);
+    let on = (t * 4.0) as i32 % 2 == 0;
+    let beacon = |fb: &mut [u32], x: f32, y: f32, w: f32| {
+        let c = if on { amber } else { rgb(150, 100, 0) };
+        rect(fb, x - w * 0.07, y - w * 0.07, x + w * 0.07, y, c, clip);
+        if on {
+            glow(fb, x, y, w * 0.4, w * 0.25, amber, 0.6, clip);
+        }
+    };
+    match kind {
+        2 => {
+            // snowplough: orange, hazard stripes along the bottom, wide blade wings
+            let w = w * 1.25;
+            draw_car(fb, cx, by, w, rgb(240, 130, 20), clip, false, true);
+            let h = w * 0.58;
+            for i in 0..8 {
+                let x = cx - w * 0.52 + i as f32 * w * 0.13;
+                let c = if i % 2 == 0 { dark } else { amber };
+                rect(fb, x, by - h * 0.22, x + w * 0.13, by - h * 0.1, c, clip);
+            }
+            rect(
+                fb,
+                cx - w * 0.58,
+                by - h * 0.3,
+                cx - w * 0.5,
+                by,
+                rgb(200, 205, 215),
+                clip,
+            );
+            rect(
+                fb,
+                cx + w * 0.5,
+                by - h * 0.3,
+                cx + w * 0.58,
+                by,
+                rgb(200, 205, 215),
+                clip,
+            );
+            beacon(fb, cx, by - h * 1.2, w);
+        }
+        3 => {
+            // tow truck: yellow with a crane boom
+            let w = w * 1.15;
+            draw_car(fb, cx, by, w, rgb(250, 200, 30), clip, false, true);
+            let h = w * 0.58;
+            rect(
+                fb,
+                cx - w * 0.04,
+                by - h * 1.25,
+                cx + w * 0.04,
+                by - h * 0.6,
+                dark,
+                clip,
+            );
+            rect(
+                fb,
+                cx - w * 0.3,
+                by - h * 1.25,
+                cx + w * 0.04,
+                by - h * 1.17,
+                dark,
+                clip,
+            );
+            rect(
+                fb,
+                cx - w * 0.3,
+                by - h * 1.17,
+                cx - w * 0.26,
+                by - h * 0.9,
+                dark,
+                clip,
+            );
+            beacon(fb, cx + w * 0.25, by - h * 1.05, w);
+        }
+        4 => {
+            // road-works truck with an arrow board
+            let w = w * 1.2;
+            draw_car(fb, cx, by, w, rgb(250, 120, 20), clip, false, true);
+            let h = w * 0.58;
+            rect(
+                fb,
+                cx - w * 0.42,
+                by - h * 1.55,
+                cx + w * 0.42,
+                by - h * 1.05,
+                dark,
+                clip,
+            );
+            for i in 0..3 {
+                let lit = ((t * 3.0) as usize % 4) > i;
+                let x = cx - w * 0.28 + i as f32 * w * 0.28;
+                let c = if lit { amber } else { rgb(70, 50, 10) };
+                rect(
+                    fb,
+                    x - w * 0.06,
+                    by - h * 1.4,
+                    x + w * 0.06,
+                    by - h * 1.2,
+                    c,
+                    clip,
+                );
+                if lit {
+                    glow(fb, x, by - h * 1.3, w * 0.25, w * 0.15, amber, 0.5, clip);
+                }
+            }
+            beacon(fb, cx, by - h * 1.62, w);
+        }
+        5 => {
+            // street sweeper: yellow-green with a brush bar and a rotating beacon
+            let w = w * 1.1;
+            draw_car(fb, cx, by, w, rgb(225, 215, 40), clip, false, true);
+            let h = w * 0.58;
+            rect(
+                fb,
+                cx - w * 0.5,
+                by - h * 0.18,
+                cx + w * 0.5,
+                by,
+                dark,
+                clip,
+            );
+            rect(
+                fb,
+                cx - w * 0.4,
+                by - h * 0.62,
+                cx + w * 0.4,
+                by - h * 0.5,
+                rgb(40, 150, 70),
+                clip,
+            );
+            beacon(fb, cx, by - h * 1.2, w);
+        }
+        6 => {
+            // armoured cash van: dark grey, small slit window, green stripe
+            let w = w * 1.15;
+            draw_car(fb, cx, by, w, rgb(62, 66, 76), clip, false, true);
+            let h = w * 0.58;
+            rect(
+                fb,
+                cx - w * 0.5,
+                by - h * 0.5,
+                cx + w * 0.5,
+                by - h * 0.42,
+                rgb(40, 160, 90),
+                clip,
+            );
+            rect(
+                fb,
+                cx - w * 0.2,
+                by - h * 0.95,
+                cx + w * 0.2,
+                by - h * 0.88,
+                rgb(150, 190, 220),
+                clip,
+            );
+        }
+        7 => {
+            // school bus: tall yellow body, black stripe, alternating red lights
+            let w = w * 1.35;
+            draw_car(fb, cx, by, w, rgb(250, 190, 0), clip, false, true);
+            let h = w * 0.58;
+            rect(
+                fb,
+                cx - w * 0.5,
+                by - h * 0.55,
+                cx + w * 0.5,
+                by - h * 0.47,
+                dark,
+                clip,
+            );
+            rect(
+                fb,
+                cx - w * 0.5,
+                by - h * 0.95,
+                cx + w * 0.5,
+                by - h * 0.87,
+                dark,
+                clip,
+            );
+            let (a, b) = if on {
+                (rgb(255, 40, 40), rgb(120, 20, 20))
+            } else {
+                (rgb(120, 20, 20), rgb(255, 40, 40))
+            };
+            rect(
+                fb,
+                cx - w * 0.42,
+                by - h * 1.22,
+                cx - w * 0.3,
+                by - h * 1.12,
+                a,
+                clip,
+            );
+            rect(
+                fb,
+                cx + w * 0.3,
+                by - h * 1.22,
+                cx + w * 0.42,
+                by - h * 1.12,
+                b,
+                clip,
+            );
+        }
+        8 => {
+            // taxi: yellow car with a lit roof sign
+            draw_car(fb, cx, by, w, rgb(255, 205, 20), clip, false, false);
+            let h = w * 0.58;
+            rect(
+                fb,
+                cx - w * 0.12,
+                by - h * 1.12,
+                cx + w * 0.12,
+                by - h * 0.98,
+                rgb(250, 250, 240),
+                clip,
+            );
+            rect(
+                fb,
+                cx - w * 0.5,
+                by - h * 0.5,
+                cx + w * 0.5,
+                by - h * 0.44,
+                dark,
+                clip,
+            );
+        }
+        9 => {
+            // army truck: olive green with a canvas cover
+            let w = w * 1.3;
+            draw_car(fb, cx, by, w, rgb(78, 96, 60), clip, false, true);
+            let h = w * 0.58;
+            rect(
+                fb,
+                cx - w * 0.44,
+                by - h * 1.25,
+                cx + w * 0.44,
+                by - h * 0.7,
+                rgb(104, 122, 80),
+                clip,
+            );
+            rect(
+                fb,
+                cx - w * 0.44,
+                by - h * 1.25,
+                cx + w * 0.44,
+                by - h * 1.18,
+                rgb(60, 74, 46),
+                clip,
+            );
+        }
+        10 => {
+            // ice-cream van: cream body, pink band and a big cone on the roof
+            let w = w * 1.15;
+            draw_car(fb, cx, by, w, rgb(250, 240, 235), clip, false, true);
+            let h = w * 0.58;
+            rect(
+                fb,
+                cx - w * 0.5,
+                by - h * 0.55,
+                cx + w * 0.5,
+                by - h * 0.45,
+                rgb(255, 120, 170),
+                clip,
+            );
+            rect(
+                fb,
+                cx - w * 0.1,
+                by - h * 1.3,
+                cx + w * 0.1,
+                by - h * 1.1,
+                rgb(255, 120, 170),
+                clip,
+            );
+            rect(
+                fb,
+                cx - w * 0.07,
+                by - h * 1.1,
+                cx + w * 0.07,
+                by - h * 0.95,
+                rgb(225, 170, 90),
+                clip,
+            );
+        }
+        11 => {
+            // tractor: green, huge rear wheels, small cab, beacon
+            draw_car(fb, cx, by, w * 0.8, rgb(40, 150, 60), clip, false, false);
+            let h = w * 0.58;
+            rect(
+                fb,
+                cx - w * 0.55,
+                by - h * 0.7,
+                cx - w * 0.32,
+                by,
+                dark,
+                clip,
+            );
+            rect(
+                fb,
+                cx + w * 0.32,
+                by - h * 0.7,
+                cx + w * 0.55,
+                by,
+                dark,
+                clip,
+            );
+            rect(
+                fb,
+                cx - w * 0.2,
+                by - h * 1.1,
+                cx + w * 0.2,
+                by - h * 0.7,
+                rgb(30, 110, 45),
+                clip,
+            );
+            beacon(fb, cx, by - h * 1.15, w);
+        }
+        _ => draw_car(fb, cx, by, w, rgb(200, 30, 30), clip, false, true),
+    }
+}
+
 /// Helicopter seen from behind and below; `alt` is the height of the skids above the ground in
 /// world units (0: landed with the rotor slowing down).
 pub(super) fn draw_heli(
@@ -1268,15 +1603,27 @@ pub(super) fn draw_emergency_seg(fb: &mut [u32], g: &Game, sp: &SegProj, idx: us
         let s = lerp(sp.s1, sp.s2, pct);
         let cx = lerp(sp.x1, sp.x2, pct) + s * e.x * ROAD_W * vwf / 2.0;
         let by = lerp(sp.y1, sp.y2, pct);
-        draw_emergency(
-            fb,
-            cx,
-            by,
-            s * CAR_W * vwf / 2.0,
-            1 + e.kind,
-            g.elapsed,
-            sp.clip,
-        );
+        if e.kind >= 2 {
+            draw_other_special(
+                fb,
+                cx,
+                by,
+                s * CAR_W * vwf / 2.0,
+                e.kind,
+                g.elapsed,
+                sp.clip,
+            );
+        } else {
+            draw_emergency(
+                fb,
+                cx,
+                by,
+                s * CAR_W * vwf / 2.0,
+                1 + e.kind,
+                g.elapsed,
+                sp.clip,
+            );
+        }
     }
 }
 

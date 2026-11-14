@@ -1,4 +1,4 @@
-//! Native window front-end (TURBOCURSA 1.8.0).
+//! Native window front-end (TURBOCURSA 1.9.0).
 //!   cargo run --release --features native --bin turbo [-- --versus | --cpu | --career | --demo | --mode NAME | --car RO] [--class sports|city|truck|bus|moped|...] [--level easy|normal|hard|expert|insane] [--weather clear|rain|storm|fog|snow|blizzard|sandstorm|hail|glaze|heatwave|ash|auto] [--surface asphalt|icelake|saltflat|lava|dunes|bog|auto] [--time auto|dawn|day|dusk|night] [--tyre auto|road|rain|snow|offroad] [--setup balanced|sprint|downforce|economy] [--rank N] [--colorblind protan|deutan|tritan|contrast] [--assist 0-3] [--slow 40-100] [--large] [--rally] [--champ TCC1-...|7|10|15] [--tour] [--ghost FILE|TG1;...] [--ghost-export SEED] [--pack 8-16 [--inverted] [--qualify]] [--players 3|4 [--humans N]] [--garage] [--buy 0-3] [--weekly] [--music 0-3] [--mph] [--keys 0-3] [--secret CODE] [--daily] [--design] [--code TCS1-...] [--seed N] [--lang xx]
 //!   modes: campaign timetrial endless rush collector slalom mirror blackout zen (or 0-8)
 //! Photo mode: P on/off (arrows move the camera, Up/Down scrub, Space+Up/Down height), H shows the HUD, C saves a PNG.
@@ -172,6 +172,7 @@ enum Mode {
 const KNOWN_FLAGS: &[&str] = &[
     "--assist",
     "--hd",
+    "--res",
     "--buy",
     "--car",
     "--career",
@@ -227,7 +228,7 @@ Modes:   --mode campaign|timetrial|endless|rush|collector|slalom|mirror|blackout
 Versus:  --versus  --cpu  --players 3|4 [--humans N]  --pack 8-16 [--inverted] [--qualify]
 Car:     --car RO  --class sports|sedan|city|truck|...  --level easy|normal|hard|expert|insane
 World:   --weather clear|rain|storm|fog|snow|...|auto  --surface asphalt|icelake|...|auto  --time auto|dawn|day|dusk|night
-Access:  --colorblind protan|deutan|tritan|contrast  --assist 0-3  --slow 40-100  --calm (reduced motion)  --hd (Full HD, 1920x1080 borderless)  --large  --lang en|ro|fr|it|es|pt|de|hu
+Access:  --colorblind protan|deutan|tritan|contrast  --assist 0-3  --slow 40-100  --calm (reduced motion)  --hd or --res hd|2k|3k|4k|8k (sharp upscale, borderless)  --large  --lang en|ro|fr|it|es|pt|de|hu
 Extras:  --demo (the pilot drives every level)  --garage  --music 0-3  --mph  --keys 0-3  --seed N  --nopick
 Other:   -h, --help  -V, --version
 
@@ -250,6 +251,15 @@ fn main() {
     {
         eprintln!("turbocursa: unknown option '{bad}'\nTry 'turbocursa --help'.");
         std::process::exit(2);
+    }
+    if let Some(i) = args.iter().position(|a| a == "--res") {
+        if args
+            .get(i + 1)
+            .is_none_or(|v| turbocursa::hd::Res::parse(v).is_none())
+        {
+            eprintln!("turbocursa: --res needs one of: hd, 2k, 3k, 4k, 8k");
+            std::process::exit(2);
+        }
     }
     let cpu = args.iter().any(|a| a == "--cpu");
     let career = args.iter().any(|a| a == "--career");
@@ -530,13 +540,24 @@ fn main() {
     } else {
         "TURBOCURSA"
     };
-    // Full HD (--hd): a borderless 1920x1080 window, the picture scaled with a sharp filter
-    let hd = args.iter().any(|a| a == "--hd");
-    let mut win = if hd {
+    // High resolution (--res hd|2k|3k|4k|8k, --hd = Full HD): a borderless window of that frame size,
+    // the picture scaled to it with a sharp filter
+    let res = args
+        .iter()
+        .position(|a| a == "--res")
+        .and_then(|i| args.get(i + 1))
+        .and_then(|v| turbocursa::hd::Res::parse(v))
+        .or_else(|| {
+            args.iter()
+                .any(|a| a == "--hd")
+                .then_some(turbocursa::hd::Res::Hd)
+        });
+    let mut win = if let Some(r) = res {
+        let (fw, fh) = r.frame();
         Window::new(
             title,
-            turbocursa::hd::HD_W,
-            turbocursa::hd::HD_H,
+            fw,
+            fh,
             WindowOptions {
                 borderless: true,
                 scale: Scale::X1,
@@ -555,17 +576,16 @@ fn main() {
         )
     }
     .expect("window");
-    if hd {
+    if res.is_some() {
         win.set_position(0, 0);
     }
-    let mut hd_up = turbocursa::hd::Upscaler::new();
+    let mut hd_up = turbocursa::hd::Upscaler::new(res.unwrap_or(turbocursa::hd::Res::Hd));
     let mut hd_buf = vec![
         0u32;
-        if hd {
-            turbocursa::hd::HD_W * turbocursa::hd::HD_H
-        } else {
-            0
-        }
+        res.map_or(0, |r| {
+            let (fw, fh) = r.frame();
+            fw * fh
+        })
     ];
     win.set_target_fps(60);
     let typed = std::rc::Rc::new(std::cell::RefCell::new(Vec::<char>::new()));
@@ -1135,10 +1155,10 @@ fn main() {
                 Err(e) => win.set_title(&format!("TURBOCURSA  photo failed: {e}")),
             }
         }
-        if hd {
+        if let Some(r) = res {
+            let (fw, fh) = r.frame();
             hd_up.run(&fb, &mut hd_buf);
-            win.update_with_buffer(&hd_buf, turbocursa::hd::HD_W, turbocursa::hd::HD_H)
-                .unwrap();
+            win.update_with_buffer(&hd_buf, fw, fh).unwrap();
         } else {
             win.update_with_buffer(&fb, W, H).unwrap();
         }

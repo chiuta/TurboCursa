@@ -20,6 +20,7 @@ Diecinueve paisajes generados: bosque, desierto, atardecer, colosales árboles-m
 - Demo: `--demo` hace que un piloto de IA recorra todos los modos en todos los niveles de dificultad, etapa tras etapa (el coche de la demo está protegido y no gasta combustible; no se guarda nada)
 - Pausa: `Esc` pausa una etapa en curso (Esc continúa, Intro reinicia); el juego también se pausa cuando la ventana pierde el foco. `--calm` (o el ajuste de movimiento reducido del sistema, en el navegador) quita las sacudidas de pantalla y suaviza los destellos; `--help` y `--version` listan las opciones.
 - Sonido e imagen: el sonido es estéreo en todo el juego; las sirenas de policía, ambulancia y bomberos y el rotor del helicóptero suenan distinto. `--hd` (nativo) o el botón `HD` / `F2` (navegador) activa una imagen Full HD nítida: un ampliado del render 640×400 a 1920×1080, no un render 1080p nativo.
+- Vehículos especiales: además de la ambulancia y los bomberos, la carretera trae quitanieves, grúa, camión de obras, barredora, furgón blindado, autobús escolar, taxi, camión militar, camioneta de helados y un tractor lento, cada uno con su aspecto y sonido. `--res hd|2k|3k|4k|8k` (nativo) o el botón `HD` / `F2` (navegador) elige un ampliado nítido de la imagen hasta 8K.
 
 ## Modos de juego
 

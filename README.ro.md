@@ -20,6 +20,7 @@ Nouăsprezece peisaje generate: pădure, deșert, amurg, copaci-lume colosali cu
 - Demo: `--demo` pune un pilot AI să parcurgă toate modurile pe toate nivelurile de dificultate, etapă după etapă (mașina demo e protejată și nu consumă combustibil; nu se salvează nimic)
 - Pauză: `Esc` pune pe pauză o etapă în curs (Esc reia, Enter reîncepe); jocul se oprește singur și când fereastra pierde focusul. `--calm` (sau setarea de mișcare redusă a sistemului, în browser) elimină tremurul ecranului și îmblânzește sclipirile; `--help` și `--version` listează opțiunile.
 - Sunet și imagine: sunetul este stereo peste tot; sirenele poliției, ambulanței și pompierilor și elicopterul sună diferit. `--hd` (nativ) sau butonul `HD` / `F2` (browser) trece la o imagine Full HD clară: o mărire a randării 640×400 la 1920×1080, nu randare 1080p nativă.
+- Vehicule speciale: pe lângă ambulanță și pompieri, pe drum apar utilaj de deszăpezire, mașină de remorcare, camion de lucrări rutiere, mașină de măturat, autoblindată de bani, autobuz școlar, taxi, camion militar, mașină cu înghețată și un tractor lent, fiecare cu aspect și sunet propriu. `--res hd|2k|3k|4k|8k` (nativ) sau butonul `HD` / `F2` (browser) alege o mărire clară a imaginii până la 8K.
 
 ## Moduri de joc
 

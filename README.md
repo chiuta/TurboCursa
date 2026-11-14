@@ -20,6 +20,7 @@ Nineteen generated landscapes: forest, desert, dusk, colossal world-trees whose 
 - Demo: `--demo` lets an AI pilot drive every mode on every difficulty, stage after stage (the demo car is shielded and uses no fuel; nothing is saved)
 - Pause: `Esc` pauses a running stage (Esc resumes, Enter restarts); the game also pauses when the window loses focus. `--calm` (or the system's reduced-motion setting in the browser) removes screen shake and softens flashes; `--help` and `--version` list the options.
 - Sound and picture: the sound is stereo everywhere; the police, ambulance and fire-engine sirens and the helicopter rotor each sound different. `--hd` (native) or the `HD` button / `F2` (browser) switches to a sharp Full HD picture: an upscale of the 640×400 render to 1920×1080, not native 1080p.
+- Special vehicles: besides the ambulance and fire engine the road now carries a snowplough, tow truck, road-works truck, street sweeper, cash van, school bus, taxi, army truck, ice-cream van and a slow tractor, each with its own look and sound. `--res hd|2k|3k|4k|8k` (native) or the `HD` button / `F2` (browser) picks a sharp upscale of the picture up to 8K.
 
 ## Game modes
 

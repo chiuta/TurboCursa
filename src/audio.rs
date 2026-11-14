@@ -201,6 +201,97 @@ fn siren(kind: u8, ts: f32, sr: f32, ph: &mut f32, lp: &mut f32, bend: f32) -> f
     *lp
 }
 
+/// Sounds of the other special vehicles (kinds 2..=11, see `game::Emerg`), roughly -1..1:
+/// diesel rumble, beeps, horns, a jingle for the ice-cream van, the putt of a tractor.
+fn special(kind: u8, ts: f32, sr: f32, ph: &mut f32, lp: &mut f32, n: f32) -> f32 {
+    let saw = |ph: &mut f32, f: f32| {
+        *ph = (*ph + f / sr).fract();
+        2.0 * *ph - 1.0
+    };
+    let gate = |period: f32, on: f32| (ts / period).fract() < on;
+    let tone = |f: f32| (TAU * f * ts).sin();
+    match kind {
+        2 => {
+            // snowplough: heavy rumble and the scrape of the blade
+            *lp += 0.06 * (saw(ph, 46.0) - *lp);
+            *lp * 1.4 + (n - *lp) * 0.12
+        }
+        3 => {
+            // tow truck: rumble and a slow double beep
+            *lp += 0.08 * (saw(ph, 62.0) - *lp);
+            *lp + if gate(1.4, 0.18) || (ts / 1.4).fract() > 0.3 && (ts / 1.4).fract() < 0.48 {
+                tone(880.0) * 0.5
+            } else {
+                0.0
+            }
+        }
+        4 => {
+            // road-works truck: the reversing-style beep
+            *lp += 0.08 * (saw(ph, 55.0) - *lp);
+            *lp + if gate(0.9, 0.5) {
+                tone(1000.0) * 0.55
+            } else {
+                0.0
+            }
+        }
+        5 => {
+            // street sweeper: whirring brushes
+            *lp += 0.2 * (n - *lp);
+            *lp * 1.6 + saw(ph, 90.0) * 0.18
+        }
+        6 => {
+            // cash van: a smooth, low engine
+            *lp += 0.07 * (saw(ph, 70.0) - *lp);
+            *lp * 1.3
+        }
+        7 => {
+            // school bus: engine and a two-tone horn now and then
+            *lp += 0.07 * (saw(ph, 58.0) - *lp);
+            *lp + if gate(5.0, 0.12) {
+                (tone(300.0) + tone(378.0)) * 0.3
+            } else {
+                0.0
+            }
+        }
+        8 => {
+            // taxi: engine and a short honk
+            *lp += 0.09 * (saw(ph, 85.0) - *lp);
+            *lp + if gate(4.0, 0.07) || gate(4.0, 0.2) && !gate(4.0, 0.13) {
+                tone(420.0) * 0.5
+            } else {
+                0.0
+            }
+        }
+        9 => {
+            // army truck: deep diesel with a rattle
+            *lp += 0.05 * (saw(ph, 40.0) - *lp);
+            *lp * 1.5 + (n - *lp) * 0.08 * if gate(0.12, 0.5) { 1.0 } else { 0.3 }
+        }
+        10 => {
+            // ice-cream van: a little jingle (a nursery tune), eight notes in two seconds
+            const TUNE: [f32; 8] = [76.0, 74.0, 72.0, 74.0, 76.0, 76.0, 76.0, 0.0];
+            let i = ((ts / 0.25) as usize) % TUNE.len();
+            let local = (ts / 0.25).fract();
+            let env = (1.0 - local).powf(0.6);
+            let m = TUNE[i];
+            *lp += 0.08 * (saw(ph, 66.0) - *lp);
+            *lp * 0.5
+                + if m > 0.0 {
+                    tone(midi_hz(m + 12.0)) * 0.5 * env
+                } else {
+                    0.0
+                }
+        }
+        11 => {
+            // tractor: slow putt-putt
+            let beat = (ts * 7.0).fract();
+            *lp += 0.1 * (saw(ph, 75.0) - *lp);
+            *lp * (-beat * 6.0).exp() * 2.2
+        }
+        _ => 0.0,
+    }
+}
+
 fn midi_hz(n: f32) -> f32 {
     440.0 * 2f32.powf((n - 69.0) / 12.0)
 }
@@ -774,14 +865,25 @@ impl Synth {
             if p.emerg > 0.02 && p.emerg_kind > 0 {
                 let ts = self.t as f32 / sr;
                 let bend = if p.emerg_passed { 0.95 } else { 1.03 };
-                let x = siren(
-                    p.emerg_kind + 1,
-                    ts,
-                    sr,
-                    &mut self.em_ph,
-                    &mut self.em_lp,
-                    bend,
-                );
+                let x = if p.emerg_kind <= 2 {
+                    siren(
+                        p.emerg_kind + 1,
+                        ts,
+                        sr,
+                        &mut self.em_ph,
+                        &mut self.em_lp,
+                        bend,
+                    )
+                } else {
+                    special(
+                        p.emerg_kind - 1,
+                        ts,
+                        sr,
+                        &mut self.em_ph,
+                        &mut self.em_lp,
+                        n,
+                    )
+                };
                 let (gl, gr) = pan_gains(p.emerg_pan.clamp(-0.9, 0.9));
                 fl += x * 0.07 * p.emerg * gl;
                 fr += x * 0.07 * p.emerg * gr;

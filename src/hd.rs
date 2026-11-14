@@ -1,13 +1,71 @@
-//! Full HD output: the 640x400 picture is scaled to 1728x1080 with a "sharp bilinear" filter and
-//! centred in a 1920x1080 frame. Pixel edges stay crisp (the blend is confined to about one output
-//! pixel around each source edge), nothing shimmers while the road scrolls, and the whole pass costs
-//! a few milliseconds, so the game keeps its 60 frames a second.
+//! High-resolution output: the 640x400 picture is scaled with a "sharp bilinear" filter to the full
+//! height of a 16:9 frame (Full HD, 2K, 3K, 4K or 8K) and centred, with black side bars. Pixel edges
+//! stay crisp (the blend is confined to about one output pixel around each source edge) and nothing
+//! shimmers while the road scrolls. The game is still rendered at 640x400; this is an upscale.
 
 use crate::{H, W};
 
+/// Output resolution. The frame is 16:9, the picture (1.6:1) fills its height.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum Res {
+    /// 1920x1080
+    Hd,
+    /// 2560x1440
+    K2,
+    /// 3200x1800
+    K3,
+    /// 3840x2160
+    K4,
+    /// 7680x4320
+    K8,
+}
+
+impl Res {
+    pub const ALL: [Res; 5] = [Res::Hd, Res::K2, Res::K3, Res::K4, Res::K8];
+
+    /// Frame size in pixels.
+    pub fn frame(self) -> (usize, usize) {
+        match self {
+            Res::Hd => (1920, 1080),
+            Res::K2 => (2560, 1440),
+            Res::K3 => (3200, 1800),
+            Res::K4 => (3840, 2160),
+            Res::K8 => (7680, 4320),
+        }
+    }
+
+    /// Size of the scaled picture inside the frame.
+    pub fn pic(self) -> (usize, usize) {
+        let h = self.frame().1;
+        (h * 8 / 5, h)
+    }
+
+    pub fn label(self) -> &'static str {
+        match self {
+            Res::Hd => "Full HD",
+            Res::K2 => "2K",
+            Res::K3 => "3K",
+            Res::K4 => "4K",
+            Res::K8 => "8K",
+        }
+    }
+
+    /// Parses `hd`, `fullhd`, `1080`, `2k`, `1440`, `3k`, `4k`, `2160`, `8k`, `4320` (any case).
+    pub fn parse(s: &str) -> Option<Res> {
+        match s.to_ascii_lowercase().as_str() {
+            "hd" | "fhd" | "fullhd" | "full-hd" | "1080" | "1080p" => Some(Res::Hd),
+            "2k" | "qhd" | "1440" | "1440p" => Some(Res::K2),
+            "3k" | "1800" | "1800p" => Some(Res::K3),
+            "4k" | "uhd" | "2160" | "2160p" => Some(Res::K4),
+            "8k" | "4320" | "4320p" => Some(Res::K8),
+            _ => None,
+        }
+    }
+}
+
+// Kept for code written against the first Full HD version.
 pub const HD_W: usize = 1920;
 pub const HD_H: usize = 1080;
-/// Size of the scaled picture inside the 1920x1080 frame (the rest is black side bars).
 pub const PIC_W: usize = 1728;
 pub const PIC_H: usize = 1080;
 
@@ -36,6 +94,7 @@ fn axis(src: usize, dst: usize) -> Vec<(u32, u32, u32)> {
 }
 
 pub struct Upscaler {
+    res: Res,
     xs: Vec<(u32, u32, u32)>,
     ys: Vec<(u32, u32, u32)>,
     rows: Vec<u32>,
@@ -43,54 +102,104 @@ pub struct Upscaler {
 
 impl Default for Upscaler {
     fn default() -> Self {
-        Self::new()
+        Self::new(Res::Hd)
+    }
+}
+
+fn threads() -> usize {
+    #[cfg(target_arch = "wasm32")]
+    {
+        1
+    }
+    #[cfg(not(target_arch = "wasm32"))]
+    {
+        std::thread::available_parallelism()
+            .map_or(1, |n| n.get())
+            .clamp(1, 8)
     }
 }
 
 impl Upscaler {
-    pub fn new() -> Upscaler {
+    pub fn new(res: Res) -> Upscaler {
+        let (pw, ph) = res.pic();
         Upscaler {
-            xs: axis(W, PIC_W),
-            ys: axis(H, PIC_H),
-            rows: vec![0; H * PIC_W],
+            res,
+            xs: axis(W, pw),
+            ys: axis(H, ph),
+            rows: vec![0; H * pw],
         }
     }
 
-    /// Scales the 640x400 `src` into the 1920x1080 `dst` (black side bars).
+    pub fn res(&self) -> Res {
+        self.res
+    }
+
+    /// Scales the 640x400 `src` into `dst` (a frame of `res().frame()` pixels, black side bars).
     pub fn run(&mut self, src: &[u32], dst: &mut [u32]) {
-        if src.len() < W * H || dst.len() < HD_W * HD_H {
+        let (fw, fh) = self.res.frame();
+        let (pw, ph) = self.res.pic();
+        if src.len() < W * H || dst.len() < fw * fh {
             return;
         }
-        for y in 0..H {
-            let row = &src[y * W..(y + 1) * W];
-            let out = &mut self.rows[y * PIC_W..(y + 1) * PIC_W];
-            for (o, &(a, b, w)) in out.iter_mut().zip(&self.xs) {
-                let (pa, pb) = (row[a as usize], row[b as usize]);
-                *o = if w == 0 || pa == pb {
-                    pa
-                } else if w == 256 {
-                    pb
-                } else {
-                    lerp(pa, pb, w)
+        let nt = threads();
+        let xs = &self.xs;
+        // horizontal pass: 400 rows of the picture width
+        let band = H.div_ceil(nt);
+        std::thread::scope(|sc| {
+            for (ci, chunk) in self.rows.chunks_mut(band * pw).enumerate() {
+                let mut job = move || {
+                    for (r, out) in chunk.chunks_mut(pw).enumerate() {
+                        let y = ci * band + r;
+                        let row = &src[y * W..(y + 1) * W];
+                        for (o, &(a, b, w)) in out.iter_mut().zip(xs) {
+                            let (pa, pb) = (row[a as usize], row[b as usize]);
+                            *o = if w == 0 || pa == pb {
+                                pa
+                            } else if w == 256 {
+                                pb
+                            } else {
+                                lerp(pa, pb, w)
+                            };
+                        }
+                    }
                 };
-            }
-        }
-        let bar = (HD_W - PIC_W) / 2;
-        for (oy, &(a, b, w)) in self.ys.iter().enumerate() {
-            let line = &mut dst[oy * HD_W..(oy + 1) * HD_W];
-            line[..bar].fill(0);
-            line[bar + PIC_W..].fill(0);
-            let (ra, rb) = (a as usize * PIC_W, b as usize * PIC_W);
-            let pic = &mut line[bar..bar + PIC_W];
-            if w == 0 {
-                pic.copy_from_slice(&self.rows[ra..ra + PIC_W]);
-            } else if w == 256 {
-                pic.copy_from_slice(&self.rows[rb..rb + PIC_W]);
-            } else {
-                for (i, o) in pic.iter_mut().enumerate() {
-                    *o = lerp(self.rows[ra + i], self.rows[rb + i], w);
+                if nt == 1 {
+                    job();
+                } else {
+                    sc.spawn(job);
                 }
             }
-        }
+        });
+        // vertical pass: every output line blends two rows; threads take bands of output lines
+        let bar = (fw - pw) / 2;
+        let (rows, ys) = (&self.rows, &self.ys);
+        let band = ph.div_ceil(nt);
+        std::thread::scope(|sc| {
+            for (ci, chunk) in dst[..fw * fh].chunks_mut(band * fw).enumerate() {
+                let mut job = move || {
+                    for (r, line) in chunk.chunks_mut(fw).enumerate() {
+                        let (a, b, w) = ys[ci * band + r];
+                        line[..bar].fill(0);
+                        line[bar + pw..].fill(0);
+                        let (ra, rb) = (a as usize * pw, b as usize * pw);
+                        let pic = &mut line[bar..bar + pw];
+                        if w == 0 {
+                            pic.copy_from_slice(&rows[ra..ra + pw]);
+                        } else if w == 256 {
+                            pic.copy_from_slice(&rows[rb..rb + pw]);
+                        } else {
+                            for (i, o) in pic.iter_mut().enumerate() {
+                                *o = lerp(rows[ra + i], rows[rb + i], w);
+                            }
+                        }
+                    }
+                };
+                if nt == 1 {
+                    job();
+                } else {
+                    sc.spawn(job);
+                }
+            }
+        });
     }
 }

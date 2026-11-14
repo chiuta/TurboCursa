@@ -20,6 +20,7 @@ Dix-neuf paysages générés : forêt, désert, crépuscule, arbres-mondes colos
 - Démo : `--demo` laisse un pilote IA parcourir tous les modes à tous les niveaux de difficulté, étape après étape (la voiture de démo est protégée et ne consomme pas de carburant ; rien n'est enregistré)
 - Pause: `Échap` met une étape en cours en pause (Échap reprend, Entrée recommence) ; le jeu se met aussi en pause quand la fenêtre perd le focus. `--calm` (ou le réglage de mouvement réduit du système, dans le navigateur) supprime les secousses d'écran et adoucit les éclairs ; `--help` et `--version` listent les options.
 - Son et image : le son est stéréo partout ; les sirènes de police, d'ambulance et de pompiers et le rotor d'hélicoptère sonnent différemment. `--hd` (natif) ou le bouton `HD` / `F2` (navigateur) active une image Full HD nette : un agrandissement du rendu 640×400 en 1920×1080, pas un rendu 1080p natif.
+- Véhicules spéciaux : outre l'ambulance et les pompiers, la route compte une déneigeuse, une dépanneuse, un camion de chantier, une balayeuse, un fourgon blindé, un bus scolaire, un taxi, un camion militaire, un camion de glaces et un tracteur lent, chacun avec son aspect et son son. `--res hd|2k|3k|4k|8k` (natif) ou le bouton `HD` / `F2` (navigateur) choisit un agrandissement net de l'image jusqu'à 8K.
 
 ## Modes de jeu
 
