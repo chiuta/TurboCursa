@@ -20,6 +20,7 @@ Neunzehn erzeugte Landschaften: Wald, Wüste, Abenddämmerung, kolossale Weltenb
 - Demo: `--demo` lässt einen KI-Piloten alle Modi auf allen Schwierigkeitsstufen fahren, Etappe für Etappe (das Demo-Auto ist geschützt und verbraucht keinen Kraftstoff; nichts wird gespeichert)
 - Pause: `Esc` pausiert eine laufende Etappe (Esc setzt fort, Enter startet neu); das Spiel pausiert auch, wenn das Fenster den Fokus verliert. `--calm` (oder die Systemeinstellung für reduzierte Bewegung im Browser) entfernt das Bildschirmzittern und mildert Blitze; `--help` und `--version` listen die Optionen auf.
 - Ton und Bild: Der Ton ist überall stereo; die Sirenen von Polizei, Rettung und Feuerwehr und der Hubschrauberrotor klingen unterschiedlich. `--hd` (nativ) oder die Schaltfläche `HD` / `F2` (Browser) schaltet auf ein scharfes Full-HD-Bild: eine Vergrößerung des 640×400-Renderings auf 1920×1080, kein natives 1080p.
+- Sonderfahrzeuge: Neben Rettung und Feuerwehr fahren Schneepflug, Abschleppwagen, Baustellenfahrzeug, Kehrmaschine, Geldtransporter, Schulbus, Taxi, Militär-LKW, Eiswagen und ein langsamer Traktor mit, jeweils mit eigenem Aussehen und Klang. `--res hd|2k|3k|4k|8k` (nativ) oder die Schaltfläche `HD` / `F2` (Browser) wählt eine scharfe Vergrößerung des Bildes bis 8K.
 
 ## Spielmodi
 
