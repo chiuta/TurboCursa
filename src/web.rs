@@ -20,6 +20,8 @@ enum Mode {
 
 struct App {
     mode: Mode,
+    /// `?demo`: the pilot drives every stage in turn and nothing is recorded
+    demo: Option<crate::ace::Demo>,
     fb: Vec<u32>,
     rgba: Vec<u8>,
     inp: [Input; 2],
@@ -867,6 +869,13 @@ pub extern "C" fn set_pick(on: u32) {
 }
 
 static PICK: AtomicU32 = AtomicU32::new(0);
+static DEMO: AtomicU32 = AtomicU32::new(0);
+
+/// Demo mode (`?demo`): call before `init`.
+#[no_mangle]
+pub extern "C" fn set_demo(on: u32) {
+    DEMO.store((on != 0) as u32, Ordering::Relaxed);
+}
 
 fn build(seed: u64, mode: u32) -> Mode {
     // the daily, the weekly and shared stage codes always use the stock car
@@ -940,13 +949,17 @@ pub extern "C" fn init(seed: u32, mode: u32) {
             .lock()
             .unwrap_or_else(std::sync::PoisonError::into_inner) = None;
     }
+    let demo = (DEMO.load(Ordering::Relaxed) == 1).then(crate::ace::Demo::new);
     *APP.lock()
         .unwrap_or_else(std::sync::PoisonError::into_inner) = Some(App {
-        mode: if PICK.load(Ordering::Relaxed) == 1 && mode != 11 && mode != 13 {
+        mode: if let Some(d) = &demo {
+            Mode::Single(Box::new(d.current()))
+        } else if PICK.load(Ordering::Relaxed) == 1 && mode != 11 && mode != 13 {
             pick_screen(seed, 0.0)
         } else {
             build(seed, mode)
         },
+        demo,
         fb: vec![0; W * H],
         rgba: vec![255; W * H * 4],
         inp: [Input::default(); 2],
@@ -1007,6 +1020,9 @@ pub extern "C" fn frame(dt: f32) -> *const u8 {
     {
         a.mode = pick_screen(a.seed, a.session);
     }
+    if a.demo.is_some() {
+        a.back = false;
+    }
     let gear_edge = a.gear_bits & !a.gear_prev;
     a.gear_prev = a.gear_bits;
     match &mut a.mode {
@@ -1035,6 +1051,17 @@ pub extern "C" fn frame(dt: f32) -> *const u8 {
             a.aparams = AudioParams::default();
         }
         Mode::Single(g) => {
+            let mut inp0 = inp[0];
+            if let Some(d) = a.demo.as_mut() {
+                // the pilot drives; Enter / Backspace must not start a normal game under it
+                let (i, nxt) = d.step(g, dt);
+                if let Some(n) = nxt {
+                    **g = n;
+                }
+                inp0 = i;
+                a.restart = false;
+                a.counted = true;
+            }
             if a.restart && (g.state != State::Playing || g.paused) {
                 let staged = *STAGE
                     .lock()
@@ -1068,7 +1095,7 @@ pub extern "C" fn frame(dt: f32) -> *const u8 {
             if gear_edge & 16 != 0 {
                 g.photo_hud_toggle();
             }
-            g.update(dt, &inp[0]);
+            g.update(dt, &inp0);
             if g.state == State::Playing {
                 a.session += dt.clamp(0.0, 0.1);
             } else if !a.counted {

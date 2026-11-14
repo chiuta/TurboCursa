@@ -168,3 +168,28 @@ fn browser_pause_freezes_and_restarts() {
         assert!(pause_ctl(v) <= 1);
     }
 }
+
+#[test]
+fn browser_demo_drives_itself_and_ignores_the_keyboard() {
+    let _g = LOCK.lock().unwrap_or_else(|e| e.into_inner());
+    set_pick(0);
+    set_demo(1);
+    init(11, 0);
+    set_input(0); // no keys at all: the pilot must still gain score
+    for _ in 0..60 * 20 {
+        frame(0.016);
+    }
+    let s = score();
+    assert!(s > 100, "the pilot scores by itself: {s}");
+    set_input(32 | 64); // Enter / Backspace must not leave the demo
+    for _ in 0..10 {
+        frame(0.016);
+    }
+    set_input(0);
+    for _ in 0..60 * 5 {
+        frame(0.016);
+    }
+    assert!(score() > 0);
+    set_demo(0);
+    init(11, 0);
+}

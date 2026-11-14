@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.10.0
+
+### Added
+- **Wide landscape layout on phones** (screens 2:1 or wider, e.g. 844x390): the steering, turbo, accelerator and brake sit in the black bars beside the picture instead of over it, so the speed gauge, minimap, gear and fuel stay visible; the gear/photo buttons move to the sky below the progress bar. Narrower landscape screens keep the overlay layout.
+- **`?demo` in the browser**: the pilot drives every stage in turn, like `--demo` natively. Enter and Backspace do not leave it, and nothing is recorded (no XP, records or ghosts).
+
+### Not verified
+- Real phones: the layout was checked in Chrome's mobile emulation at 844x390 and 667x375 only.
+
 ## 1.9.0
 
 ### Added

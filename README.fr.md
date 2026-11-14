@@ -21,6 +21,7 @@ Dix-neuf paysages générés : forêt, désert, crépuscule, arbres-mondes colos
 - Pause: `Échap` met une étape en cours en pause (Échap reprend, Entrée recommence) ; le jeu se met aussi en pause quand la fenêtre perd le focus. `--calm` (ou le réglage de mouvement réduit du système, dans le navigateur) supprime les secousses d'écran et adoucit les éclairs ; `--help` et `--version` listent les options.
 - Son et image : le son est stéréo partout ; les sirènes de police, d'ambulance et de pompiers et le rotor d'hélicoptère sonnent différemment. `--hd` (natif) ou le bouton `HD` / `F2` (navigateur) active une image Full HD nette : un agrandissement du rendu 640×400 en 1920×1080, pas un rendu 1080p natif.
 - Véhicules spéciaux : outre l'ambulance et les pompiers, la route compte une déneigeuse, une dépanneuse, un camion de chantier, une balayeuse, un fourgon blindé, un bus scolaire, un taxi, un camion militaire, un camion de glaces et un tracteur lent, chacun avec son aspect et son son. `--res hd|2k|3k|4k|8k` (natif) ou le bouton `HD` / `F2` (navigateur) choisit un agrandissement net de l'image jusqu'à 8K.
+- Les téléphones en paysage (2:1 ou plus large) ont les commandes dans les bandes latérales, sans couvrir la vitesse, la mini-carte et le rapport ; `?demo` dans le navigateur laisse le pilote conduire seul toutes les étapes.
 
 ## Modes de jeu
 

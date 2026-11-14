@@ -21,6 +21,7 @@ Dezanove paisagens geradas: floresta, deserto, entardecer, colossais árvores-mu
 - Pausa: `Esc` pausa uma etapa em curso (Esc continua, Enter reinicia); o jogo também pausa quando a janela perde o foco. `--calm` (ou a definição de movimento reduzido do sistema, no navegador) retira os tremores do ecrã e suaviza os clarões; `--help` e `--version` listam as opções.
 - Som e imagem: o som é estéreo em todo o jogo; as sirenes da polícia, ambulância e bombeiros e o rotor do helicóptero soam diferentes. `--hd` (nativo) ou o botão `HD` / `F2` (navegador) ativa uma imagem Full HD nítida: uma ampliação do render 640×400 para 1920×1080, não um render 1080p nativo.
 - Veículos especiais: além da ambulância e dos bombeiros, a estrada tem limpa-neves, reboque, camião de obras, varredora, carrinha blindada, autocarro escolar, táxi, camião militar, carrinha de gelados e um trator lento, cada um com aspeto e som próprios. `--res hd|2k|3k|4k|8k` (nativo) ou o botão `HD` / `F2` (navegador) escolhe uma ampliação nítida da imagem até 8K.
+- Os telemóveis na horizontal (2:1 ou mais largos) têm os controlos nas faixas laterais, sem tapar a velocidade, o minimapa e a mudança; `?demo` no navegador deixa o piloto conduzir sozinho todas as etapas.
 
 ## Modos de jogo
 

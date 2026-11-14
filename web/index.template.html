@@ -70,6 +70,18 @@ body.rot #wrap{position:fixed;top:0;left:100vw;width:100vh;height:100vw;transfor
  body[data-o=l]:not(.menu) #bar{display:none}
  body[data-o=l].menu #bar{position:absolute;top:56px;left:8px;right:8px;width:auto;background:#0b0b12ee;z-index:5;max-height:70vh}
 }
+/* wide landscape phones (2:1 or wider): the picture leaves a bar on each side, so the controls sit there and cover nothing */
+@media (hover:none) and (min-aspect-ratio:2/1),(pointer:coarse) and (min-aspect-ratio:2/1){
+ body[data-o=l]{--bw:calc((100vw - 160vh)/2 - 14px)}
+ body[data-o=l] #pad .main{top:56px;bottom:8px;left:6px;right:6px;height:auto;max-height:none;align-items:stretch}
+ body[data-o=l] #pad .st{flex:0 0 var(--bw)}
+ body[data-o=l] #pad .pd{flex:0 0 var(--bw)}
+ body[data-o=l] #pad .pd .pp{flex-direction:column-reverse}
+ body[data-o=l] #pad .row{top:44px}
+ body[data-o=l] #pad .row button,body[data-o=l] #pad .main button{opacity:.9}
+ body[data-o=l] #pad button span{font-size:9px;letter-spacing:0}
+ body[data-o=l] #pad .sm{width:38px;height:32px;font-size:13px;opacity:.55}
+}
 </style></head><body>
 <div id="wrap">
 <div id="bar"><div class="grp"><label for="md" id="mdl"></label><select id="md"></select><a id="m3" href="?">·</a><a id="cd" href="#" role="button">⌨</a><button id="hq" type="button" aria-label="Resolution" aria-pressed="false">SD</button></div>
@@ -178,7 +190,8 @@ WebAssembly.instantiate(bytes,{}).then(({instance})=>{
   try{localStorage.setItem("turbocursa.res",String(i))}catch(x){}};
  setRes(ri);$("hq").addEventListener("click",()=>{setRes((ri+1)%RES.length);$("hq").blur()});
  (()=>{let idx=-1;if(carQ){for(let i=0;i<e.country_count();i++){const v=e.country_code(i);if(String.fromCharCode(v>>8,v&255)===carQ){idx=i;break}}}e.set_car(idx>=0?idx:0xFFFFFFFF)})();
- e.set_class(clQ);e.set_level(lvQ);e.set_weather(wxQ<0?255:wxQ);e.set_surface(sfQ<0?255:sfQ);e.set_pick(!q.has("daily")&&modeCode!==11&&!q.has("class")&&!q.has("level")&&!q.has("weather")&&!q.has("surface")&&!q.has("nopick")?1:0);
+ e.set_class(clQ);e.set_level(lvQ);e.set_weather(wxQ<0?255:wxQ);e.set_surface(sfQ<0?255:sfQ);try{e.set_demo(q.has("demo")?1:0)}catch(x){}
+ e.set_pick(!q.has("demo")&&!q.has("daily")&&modeCode!==11&&!q.has("class")&&!q.has("level")&&!q.has("weather")&&!q.has("surface")&&!q.has("nopick")?1:0);
  try{e.set_best(bestVal())}catch(x){}
  try{e.set_calm(/[?&]calm\b/.test(location.search)||matchMedia("(prefers-reduced-motion: reduce)").matches?1:0)}catch(x){}
  e.set_filter(acQ);e.set_assist(asQ);e.set_slow(slowQ);e.set_time(tmQ);e.set_tyre(tyQ);e.set_setup(suQ);e.set_rank(rkQ<0?0xFFFFFFFF:rkQ);

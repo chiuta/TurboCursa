@@ -21,6 +21,7 @@ Tizenkilenc generált táj: erdő, sivatag, alkony, a felhőkben rejtőző koron
 - Szünet: `Esc` szünetelteti a futó szakaszt (Esc folytatja, Enter újraindítja); a játék akkor is szünetel, ha az ablak elveszti a fókuszt. A `--calm` (vagy a böngészőben a rendszer csökkentett mozgás beállítása) kikapcsolja a képernyőremegést és szelídíti a villanásokat; a `--help` és a `--version` kilistázza a kapcsolókat.
 - Hang és kép: a hang mindenhol sztereó; a rendőrségi, mentő- és tűzoltósziréna, valamint a helikopter rotorja különbözően szól. A `--hd` (natív) vagy a `HD` gomb / `F2` (böngésző) éles Full HD képre vált: a 640×400-as render nagyítása 1920×1080-ra, nem natív 1080p.
 - Különleges járművek: a mentő és a tűzoltó mellett hóeke, vontató, útépítő teherautó, útseprő, pénzszállító, iskolabusz, taxi, katonai teherautó, fagylaltos kocsi és egy lassú traktor is az úton van, mind saját kinézettel és hanggal. A `--res hd|2k|3k|4k|8k` (natív) vagy a `HD` gomb / `F2` (böngésző) a kép éles nagyítását választja 8K-ig.
+- A fekvő (2:1 vagy szélesebb) telefonokon a vezérlők az oldalsó sávokban vannak, nem takarják a sebességet, a térképet és a fokozatot; a `?demo` a böngészőben magától végigvezeti az összes pályát.
 
 ## Játékmódok
 
