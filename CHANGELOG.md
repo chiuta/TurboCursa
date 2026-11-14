@@ -1,5 +1,20 @@
 # Changelog
 
+## 1.11.0
+
+### Added
+- **Fractal micro-texture on the road and the ground** (`src/render/micro.rs`). Until now the road and the verge were flat colours per segment. A new pass lays tileable fractal detail over them: asphalt with aggregate grain, pebbles, a branching crack network and repair patches; soil and turf from domain-warped multi-octave noise with fine blades and a slow warm/cool tint; a large-scale mottling layer that survives to the horizon. Everything is generated at start-up from the code, no image assets.
+- The texture coordinates are anchored to the track (lateral position in road half-widths, distance in segment units), so the detail rides with the world instead of swimming on the screen. Each texture has a mip chain; a row picks its level from the pixel footprint and the detail fades out before it would shimmer. Fantasy biomes with flat colours (mirror lake, chessboard) and bridge/viaduct/tunnel ground are left untouched; thin ice keeps its own cracks.
+- The presentation gallery was re-rendered with the new textures.
+
+### Changed
+- The rendered picture is different on purpose: the frame hash of `examples/framehash.rs` no longer matches 1.10.2.
+- Cost: about 2.5 ms more per frame on the build machine (about 9 to 11.5 ms for simulation, scene and post-processing at 640x400, measured with `examples/bench.rs`).
+
+### Not verified
+- Speed on other machines and in the browser (WASM is single-threaded and slower); weak devices may drop frames.
+- The renderer is still 640x400; HD to 8K are sharp upscales, so the new detail is limited by that grid. Real hyper-realism would need rendering at a higher internal resolution, which this release does not do.
+
 ## 1.10.2
 
 ### Changed

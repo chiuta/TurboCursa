@@ -8,6 +8,7 @@ use std::cell::Cell;
 
 mod city;
 mod landscapes;
+mod micro;
 mod scenery;
 mod sprites;
 mod weather;
@@ -1295,6 +1296,27 @@ pub fn render_view(g: &Game, fb: &mut [u32], vw_: usize, vh_: usize) {
             maxy,
             shade(pp.road[band], 1.06),
         );
+        {
+            // fractal micro-texture over the road and the verge
+            let ground_tex = match seg.feat {
+                F_NONE | F_PASS => match seg.biome {
+                    6 | 11 | 13 => micro::Ground::None,
+                    0..=7 => micro::Ground::LumTint,
+                    _ => micro::Ground::Lum,
+                },
+                _ => micro::Ground::None,
+            };
+            micro::strip(
+                fb,
+                (y2, y1),
+                (x2, w2),
+                (x1, w1),
+                idx,
+                maxy,
+                !in_thin,
+                ground_tex,
+            );
+        }
         // edge lines
         let e1 = w1 / 40.0;
         let e2 = w2 / 40.0;
