@@ -579,8 +579,9 @@ impl Game {
             && self.city.scenes.iter().all(|&z| (z - pz).abs() > 12000.0)
         {
             // ambulances and fire engines are the most common; the snowplough needs snow
-            const POOL: [u8; 24] = [
+            const POOL: [u8; 33] = [
                 0, 0, 0, 1, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 11, 12, 13, 14, 15, 16, 17, 18, 19,
+                20, 21, 22, 23, 24, 25, 26, 27, 28,
             ];
             let mut kind = POOL[(self.fx_rng.f() * POOL.len() as f32) as usize % POOL.len()];
             if kind == 2
@@ -594,17 +595,25 @@ impl Game {
                 kind = 5;
             }
             let siren = kind <= 1;
-            let tractor = kind == 11;
+            let tractor = Emerg::is_ahead(kind);
+            let air = Emerg::is_air(kind);
+            let side = if self.fx_rng.f() < 0.5 { -1.0 } else { 1.0 };
+            let lane = if kind == 11 {
+                0.66
+            } else if air {
+                side * (0.2 + 1.2 * self.fx_rng.f())
+            } else {
+                0.0
+            };
             self.emerg.push(Emerg {
                 kind,
                 z: if tractor { pz + 16000.0 } else { pz - 11000.0 },
-                x: if tractor { 0.66 } else { 0.0 },
-                speed: if tractor {
-                    MAX_SPEED * 0.2
-                } else {
-                    (self.speed * 1.15).clamp(MAX_SPEED * 0.62, MAX_SPEED * 0.9)
+                x: lane,
+                speed: match Emerg::cruise(kind) {
+                    Some(f) => MAX_SPEED * f,
+                    None => (self.speed * 1.15).clamp(MAX_SPEED * 0.62, MAX_SPEED * 0.9),
                 },
-                target: if tractor { 0.66 } else { 0.0 },
+                target: lane,
                 passed: false,
                 warned: !siren,
             });
@@ -616,7 +625,7 @@ impl Game {
         while i < self.emerg.len() {
             let mut e = self.emerg[i];
             let d = wrap(pz - e.z, len); // > 0: behind the player
-            if d > 2500.0 && e.kind != 11 {
+            if d > 2500.0 && !Emerg::is_ahead(e.kind) && !Emerg::is_air(e.kind) {
                 // pick a lane away from the player and free of traffic
                 let mut best = (f32::MIN, 0.0f32);
                 for lane in LANES {
@@ -649,6 +658,7 @@ impl Game {
                 blocked = true;
             }
             if dz.abs() < SEG_LEN * 0.8
+                && !Emerg::is_air(e.kind)
                 && (self.x - e.x).abs() < 0.2 + 0.13 * self.car.width
                 && !prot
                 && !zen
@@ -664,8 +674,8 @@ impl Game {
                 self.burst_sparks();
                 e.passed = true;
             }
-            if e.kind == 11 {
-                // the tractor is ahead and slow: it is passed once it is behind you
+            if Emerg::is_ahead(e.kind) {
+                // slow traffic is ahead: it is passed once it is behind you
                 if !e.passed && dz < -SEG_LEN {
                     e.passed = true;
                 }
@@ -676,7 +686,7 @@ impl Game {
                     self.good_act(500, 2.0, "GOOD DRIVER");
                 }
             }
-            if dz > 26000.0 || (e.kind == 11 && dz < -9000.0) {
+            if dz > 26000.0 || (Emerg::is_ahead(e.kind) && dz < -9000.0) {
                 self.emerg.remove(i);
                 continue;
             }
@@ -702,16 +712,18 @@ impl Game {
     /// Used by tests and tools.
     pub fn spawn_special(&mut self, kind: u8, dist: f32) {
         let pz = self.pos + PLAYER_Z;
-        let lane = if kind == 11 { 0.66 } else { 0.0 };
+        let lane = if kind == 11 {
+            0.66
+        } else if Emerg::is_air(kind) {
+            0.5
+        } else {
+            0.0
+        };
         self.emerg.push(Emerg {
             kind,
             z: pz + dist,
             x: lane,
-            speed: if kind == 11 {
-                MAX_SPEED * 0.2
-            } else {
-                MAX_SPEED * 0.7
-            },
+            speed: MAX_SPEED * Emerg::cruise(kind).unwrap_or(0.7),
             target: lane,
             passed: false,
             warned: true,

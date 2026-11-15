@@ -1,11 +1,11 @@
 //! Portraits of the special vehicles for the presentation page, rendered natively at 1728x1080.
-//!   special_shots OUTDIR  -> OUTDIR/sv_<kind>.png and .box (kinds 0..=19, 20 police car, 21 helicopter)
+//!   special_shots OUTDIR  -> OUTDIR/sv_<kind>.png and .box (kinds 0..=28, 29 police car, 30 helicopter)
 use turbocursa::game::*;
 use turbocursa::share::StageCode;
 
 fn scene(kind: Option<u8>) -> Vec<u32> {
-    let extra = kind.filter(|&k| k >= 20);
-    let kind = kind.filter(|&k| k < 20);
+    let extra = kind.filter(|&k| k >= 29);
+    let kind = kind.filter(|&k| k < 29);
     let mut g = StageCode {
         seed: 7,
         mode: 0,
@@ -19,7 +19,7 @@ fn scene(kind: Option<u8>) -> Vec<u32> {
         g.update(1.0 / 60.0, &inp);
     }
     if let Some(k) = kind {
-        g.spawn_special(k, 1900.0);
+        g.spawn_special(k, if k >= 20 { Emerg::view_dist(k) } else { 1900.0 });
     }
     g.update(0.0, &inp);
     let (w, h) = (1728usize, 1080usize);
@@ -27,8 +27,8 @@ fn scene(kind: Option<u8>) -> Vec<u32> {
     turbocursa::render::render_view(&g, &mut fb, w, h);
     // 20: police car, 21: traffic helicopter (drawn straight onto the frame)
     match extra {
-        Some(20) => turbocursa::render::draw_portrait(&mut fb, w, h, 0, 864.0, 715.0, 190.0),
-        Some(21) => turbocursa::render::draw_portrait(&mut fb, w, h, 1, 864.0, 640.0, 250.0),
+        Some(29) => turbocursa::render::draw_portrait(&mut fb, w, h, 0, 864.0, 715.0, 190.0),
+        Some(30) => turbocursa::render::draw_portrait(&mut fb, w, h, 1, 864.0, 640.0, 250.0),
         _ => {}
     }
     fb
@@ -38,10 +38,11 @@ fn main() {
     let out = std::env::args().nth(1).unwrap_or("/tmp".into());
     let (w, h) = (1728usize, 1080usize);
     let base = scene(None);
-    for kind in 0..=21u8 {
+    for kind in 0..=30u8 {
         let fb = scene(Some(kind));
         let (mut x0, mut y0, mut x1, mut y1) = (w, h, 0, 0);
-        for y in 300..740 {
+        let ytop = if (20..=28).contains(&kind) { 40 } else { 300 };
+        for y in ytop..740 {
             for x in 200..1340 {
                 let (a, b) = (fb[y * w + x], base[y * w + x]);
                 let d = |s: u32| ((a >> s) & 255).abs_diff((b >> s) & 255);

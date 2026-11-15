@@ -1,4 +1,4 @@
-//! Native window front-end (TURBOCURSA 1.14.0).
+//! Native window front-end (TURBOCURSA 1.15.0).
 //!   cargo run --release --features native --bin turbo [-- --versus | --cpu | --career | --demo | --mode NAME | --car RO] [--class sports|city|truck|bus|moped|...] [--level easy|normal|hard|expert|insane] [--weather clear|rain|storm|fog|snow|blizzard|sandstorm|hail|glaze|heatwave|ash|auto] [--surface asphalt|icelake|saltflat|lava|dunes|bog|auto] [--time auto|dawn|day|dusk|night] [--tyre auto|road|rain|snow|offroad] [--setup balanced|sprint|downforce|economy] [--rank N] [--colorblind protan|deutan|tritan|contrast] [--assist 0-3] [--slow 40-100] [--large] [--rally] [--champ TCC1-...|7|10|15] [--tour] [--ghost FILE|TG1;...] [--ghost-export SEED] [--pack 8-16 [--inverted] [--qualify]] [--players 3|4 [--humans N]] [--garage] [--buy 0-3] [--weekly] [--music 0-3] [--mph] [--keys 0-3] [--secret CODE] [--daily] [--design] [--code TCS1-...] [--seed N] [--lang xx]
 //!   modes: campaign timetrial endless rush collector slalom mirror blackout zen (or 0-8)
 //! Photo mode: P on/off (arrows move the camera, Up/Down scrub, Space+Up/Down height), H shows the HUD, C saves a PNG.

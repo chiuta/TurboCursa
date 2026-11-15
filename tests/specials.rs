@@ -14,7 +14,7 @@ fn game() -> Game {
 
 #[test]
 fn every_special_vehicle_is_drawn_and_leaves_the_road() {
-    for kind in 0..=19u8 {
+    for kind in 0..=28u8 {
         let mut g = game();
         let inp = Input::default();
         for _ in 0..120 {
@@ -22,7 +22,7 @@ fn every_special_vehicle_is_drawn_and_leaves_the_road() {
         }
         let mut plain = vec![0u32; W * H];
         turbocursa::render::render(&g, &mut plain);
-        g.spawn_special(kind, 2600.0);
+        g.spawn_special(kind, Emerg::view_dist(kind));
         let mut fb = vec![0u32; W * H];
         turbocursa::render::render(&g, &mut fb);
         assert_ne!(fb, plain, "kind {kind} must change the picture");
@@ -69,7 +69,7 @@ fn every_special_vehicle_has_its_own_audible_sound() {
     };
     let (quiet, _) = energy(255);
     let mut seen: Vec<Vec<f32>> = Vec::new();
-    for kind in 0..=19u8 {
+    for kind in 0..=28u8 {
         let (e, w) = energy(kind);
         assert!(
             e > quiet * 1.05,

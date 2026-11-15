@@ -194,7 +194,9 @@ impl Crossing {
 /// 7 school bus, 8 taxi, 9 army truck, 10 ice-cream van (all overtake from behind) and
 /// 11 tractor (crawls along the right lane ahead of you). Kinds 12..=19 are more traffic that
 /// overtakes from behind: 12 garbage truck, 13 city bus, 14 fuel tanker, 15 concrete mixer,
-/// 16 mail van, 17 limousine, 18 camper, 19 courier motorcycle.
+/// 16 mail van, 17 limousine, 18 camper, 19 courier motorcycle. Kinds 20..=28 are aerial and
+/// never collide: 20 airliner, 21 banner biplane, 22 hot-air balloon, 23 airship, 24 delivery
+/// drone, 25 fighter jets, 26 paraglider, 27 air ambulance, 28 UFO.
 #[derive(Clone, Copy, Debug)]
 pub struct Emerg {
     pub kind: u8,
@@ -204,6 +206,52 @@ pub struct Emerg {
     target: f32,
     pub passed: bool,
     warned: bool,
+}
+
+impl Emerg {
+    /// Aerial kinds fly above the road and cannot be hit.
+    pub fn is_air(kind: u8) -> bool {
+        kind >= 20
+    }
+    /// Kinds that drift ahead of you and are passed (instead of overtaking from behind).
+    pub fn is_ahead(kind: u8) -> bool {
+        matches!(kind, 11 | 22 | 23 | 26)
+    }
+    /// Height above the road of an aerial kind in world units (0 for road vehicles).
+    pub fn altitude(kind: u8) -> f32 {
+        match kind {
+            20 => 6000.0,
+            21 => 2600.0,
+            22 => 3600.0,
+            23 => 4200.0,
+            24 => 1000.0,
+            25 => 4500.0,
+            26 => 2400.0,
+            27 => 1600.0,
+            28 => 3600.0,
+            _ => 0.0,
+        }
+    }
+    /// A distance ahead at which the whole vehicle is in view (for tests and tools).
+    pub fn view_dist(kind: u8) -> f32 {
+        2600.0_f32.max(1.5 * Emerg::altitude(kind))
+    }
+    /// Cruising speed as a fraction of the top speed.
+    pub fn cruise(kind: u8) -> Option<f32> {
+        match kind {
+            11 => Some(0.2),
+            22 => Some(0.12),
+            23 => Some(0.1),
+            26 => Some(0.15),
+            20 => Some(1.5),
+            21 => Some(0.75),
+            24 => Some(0.7),
+            25 => Some(2.6),
+            27 => Some(1.0),
+            28 => Some(1.2),
+            _ => None,
+        }
+    }
 }
 
 /// A police car chasing the player.

@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.15.0
+
+### Added
+- **Nine aerial special vehicles** (kinds 20 to 28) crossing the sky above the road: airliner, banner biplane, hot-air balloon, airship, delivery drone, fighter jets, paraglider, air ambulance and UFO. Each has its own drawing (strobes, burner flame, afterburner, rotor), altitude, cruising speed and engine/air sound. Fast ones overtake from behind, balloon, airship and paraglider drift slowly ahead. They fly over the road and never collide with the car. Police car and helicopter portraits are now kinds 29 and 30 in the tools.
+- `Emerg::is_air`, `is_ahead`, `cruise`, `altitude`, `view_dist` describe the new behaviour; the tests cover kinds 0 to 28 (drawn, audible, different from each other, leave the road).
+- Presentation page: 29 traffic vehicles plus portraits, names in 8 languages.
+
+### Not verified
+- How the new sounds feel on real speakers (only level and difference are measured), and how often each aircraft turns up in a long run. Some portraits (air ambulance, airship, jets) are simple shapes and look plain.
+
 ## 1.14.0
 
 ### Added

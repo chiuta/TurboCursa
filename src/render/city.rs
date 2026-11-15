@@ -1530,6 +1530,287 @@ pub(super) fn draw_other_special(
     }
 }
 
+/// Aerial special vehicles seen from behind and below (kinds 20..=28, see `Emerg`). `u` is the
+/// size of one world unit in pixels at that distance; sizes below are in world units.
+pub(super) fn draw_aerial(fb: &mut [u32], cx: f32, by: f32, u: f32, kind: u8, t: f32, clip: f32) {
+    if u * 400.0 < 1.5 {
+        return;
+    }
+    let alt = crate::game::Emerg::altitude(kind);
+    let bob = 120.0 * (t * 0.9 + kind as f32).sin();
+    let cy = by - (alt + bob) * u;
+    let blink = (t * 3.0).fract() < 0.25;
+    let white = rgb(238, 240, 246);
+    let grey = rgb(150, 156, 168);
+    let dark = rgb(40, 44, 54);
+    let r = |fb: &mut [u32], x0: f32, y0: f32, x1: f32, y1: f32, c: u32| {
+        rect(
+            fb,
+            cx + x0 * u,
+            cy + y0 * u,
+            cx + x1 * u,
+            cy + y1 * u,
+            c,
+            clip,
+        )
+    };
+    let e = |fb: &mut [u32], x: f32, y: f32, rx: f32, ry: f32, c: u32| {
+        ellipse(fb, cx + x * u, cy + y * u, rx * u, ry * u, c, clip)
+    };
+    let q = |fb: &mut [u32], p: [(f32, f32); 4], c: u32| {
+        poly4(fb, p.map(|(x, y)| (cx + x * u, cy + y * u)), clip, c)
+    };
+    match kind {
+        20 => {
+            // airliner: swept wings with engines, a tall blue tail fin, a blinking strobe
+            q(
+                fb,
+                [
+                    (-2200.0, 200.0),
+                    (-250.0, -80.0),
+                    (250.0, -80.0),
+                    (2200.0, 200.0),
+                ],
+                grey,
+            );
+            q(
+                fb,
+                [
+                    (-2200.0, 200.0),
+                    (2200.0, 200.0),
+                    (2200.0, 280.0),
+                    (-2200.0, 280.0),
+                ],
+                white,
+            );
+            e(fb, 0.0, 0.0, 300.0, 240.0, white);
+            r(fb, -60.0, -620.0, 60.0, -120.0, rgb(30, 80, 170));
+            r(fb, -800.0, -60.0, 800.0, 20.0, grey);
+            e(fb, -820.0, 250.0, 120.0, 120.0, dark);
+            e(fb, 820.0, 250.0, 120.0, 120.0, dark);
+            if blink {
+                glow(
+                    fb,
+                    cx + 2200.0 * u,
+                    cy + 240.0 * u,
+                    160.0 * u,
+                    120.0 * u,
+                    rgb(255, 255, 255),
+                    0.8,
+                    clip,
+                );
+            }
+        }
+        21 => {
+            // biplane trailing a banner
+            r(fb, -1100.0, -150.0, 1100.0, -60.0, rgb(200, 40, 40));
+            r(fb, -1100.0, 90.0, 1100.0, 180.0, rgb(200, 40, 40));
+            for sx in [-900.0f32, 900.0] {
+                r(fb, sx - 20.0, -150.0, sx + 20.0, 180.0, dark);
+            }
+            e(fb, 0.0, 20.0, 190.0, 130.0, rgb(240, 200, 60));
+            r(fb, -40.0, -330.0, 40.0, -60.0, rgb(200, 40, 40));
+            for i in 0..6 {
+                let w = (t * 4.0 + i as f32 * 0.9).sin() * 40.0;
+                let c = if i % 2 == 0 { white } else { rgb(200, 40, 40) };
+                r(
+                    fb,
+                    -700.0 + i as f32 * 233.0,
+                    520.0 + w,
+                    -467.0 + i as f32 * 233.0,
+                    820.0 + w,
+                    c,
+                );
+            }
+            r(fb, -6.0, 130.0, 6.0, 560.0, dark);
+        }
+        22 => {
+            // hot-air balloon: striped envelope, a basket and a flickering burner
+            e(fb, 0.0, 0.0, 720.0, 880.0, rgb(214, 60, 50));
+            e(fb, 0.0, 0.0, 480.0, 880.0, rgb(250, 200, 60));
+            e(fb, 0.0, 0.0, 240.0, 880.0, rgb(40, 100, 190));
+            r(fb, -150.0, 1200.0, 150.0, 1420.0, rgb(130, 90, 50));
+            r(fb, -170.0, 880.0, -150.0, 1200.0, dark);
+            r(fb, 150.0, 880.0, 170.0, 1200.0, dark);
+            if (t * 6.0).sin() > 0.0 {
+                glow(
+                    fb,
+                    cx,
+                    cy + 1000.0 * u,
+                    260.0 * u,
+                    200.0 * u,
+                    rgb(255, 170, 60),
+                    0.7,
+                    clip,
+                );
+            }
+        }
+        23 => {
+            // airship: silver envelope, cross tail fins, a gondola and a red band
+            e(fb, 0.0, 0.0, 1500.0, 480.0, rgb(200, 206, 216));
+            r(
+                fb,
+                -1500.0 * 0.04,
+                -480.0,
+                1500.0 * 0.04,
+                480.0,
+                rgb(210, 50, 50),
+            );
+            r(fb, -1200.0, -30.0, 1200.0, 30.0, rgb(210, 50, 50));
+            r(fb, -60.0, -780.0, 60.0, -300.0, grey);
+            r(fb, -420.0, -40.0, -240.0, 40.0, grey);
+            r(fb, 240.0, -40.0, 420.0, 40.0, grey);
+            r(fb, -240.0, 480.0, 240.0, 640.0, dark);
+            if blink {
+                glow(
+                    fb,
+                    cx + 1400.0 * u,
+                    cy,
+                    140.0 * u,
+                    100.0 * u,
+                    rgb(255, 80, 60),
+                    0.8,
+                    clip,
+                );
+            }
+        }
+        24 => {
+            // delivery drone: four spinning rotors, blinking lights and a parcel
+            r(fb, -150.0, -50.0, 150.0, 50.0, dark);
+            for (sx, c) in [
+                (-420.0f32, rgb(255, 60, 50)),
+                (-140.0, white),
+                (140.0, white),
+                (420.0, rgb(60, 230, 90)),
+            ] {
+                r(fb, sx.signum() * 150.0, -30.0, sx, -10.0, dark);
+                e(fb, sx, -50.0, 190.0, 30.0, grey);
+                if blink {
+                    glow(
+                        fb,
+                        cx + sx * u,
+                        cy - 20.0 * u,
+                        80.0 * u,
+                        60.0 * u,
+                        c,
+                        0.8,
+                        clip,
+                    );
+                }
+            }
+            r(fb, -110.0, 50.0, 110.0, 230.0, rgb(180, 130, 70));
+            r(fb, -8.0, 50.0, 8.0, 230.0, rgb(230, 210, 150));
+        }
+        25 => {
+            // two fighter jets in formation, afterburners lit
+            for sx in [-650.0f32, 650.0] {
+                q(
+                    fb,
+                    [
+                        (sx - 700.0, 140.0),
+                        (sx - 80.0, -120.0),
+                        (sx + 80.0, -120.0),
+                        (sx + 700.0, 140.0),
+                    ],
+                    rgb(96, 104, 118),
+                );
+                e(fb, sx, 0.0, 110.0, 190.0, rgb(130, 138, 150));
+                r(fb, sx - 150.0, -330.0, sx - 100.0, -20.0, rgb(80, 86, 98));
+                r(fb, sx + 100.0, -330.0, sx + 150.0, -20.0, rgb(80, 86, 98));
+                glow(
+                    fb,
+                    cx + sx * u,
+                    cy + 170.0 * u,
+                    240.0 * u,
+                    200.0 * u,
+                    rgb(255, 150, 50),
+                    0.9,
+                    clip,
+                );
+            }
+        }
+        26 => {
+            // paraglider: a striped canopy, the lines and a pilot hanging below
+            e(fb, 0.0, 0.0, 920.0, 230.0, rgb(240, 100, 40));
+            e(fb, 0.0, 0.0, 620.0, 230.0, rgb(250, 230, 80));
+            e(fb, 0.0, 0.0, 320.0, 230.0, rgb(50, 140, 230));
+            for sx in [-700.0f32, 0.0, 700.0] {
+                q(
+                    fb,
+                    [
+                        (sx - 6.0, 200.0),
+                        (sx + 6.0, 200.0),
+                        (4.0, 900.0),
+                        (-4.0, 900.0),
+                    ],
+                    dark,
+                );
+            }
+            r(fb, -70.0, 900.0, 70.0, 1180.0, rgb(60, 70, 90));
+            e(fb, 0.0, 860.0, 70.0, 70.0, rgb(230, 190, 160));
+        }
+        27 => {
+            // air ambulance: white and red helicopter, red cross, flashing blue strobes
+            e(fb, 0.0, -420.0, 1500.0, 70.0, rgb(150, 158, 170));
+            e(fb, 0.0, 0.0, 380.0, 280.0, white);
+            r(fb, -40.0, 100.0, 40.0, 900.0, white);
+            r(fb, -150.0, 720.0, 150.0, 780.0, rgb(210, 40, 40));
+            r(fb, -60.0, -100.0, 60.0, 100.0, rgb(210, 40, 40));
+            r(fb, -100.0, -40.0, 100.0, 40.0, rgb(210, 40, 40));
+            r(fb, -330.0, 330.0, 330.0, 370.0, dark);
+            if blink {
+                glow(
+                    fb,
+                    cx - 300.0 * u,
+                    cy - 220.0 * u,
+                    140.0 * u,
+                    100.0 * u,
+                    rgb(80, 140, 255),
+                    0.9,
+                    clip,
+                );
+            } else {
+                glow(
+                    fb,
+                    cx + 300.0 * u,
+                    cy - 220.0 * u,
+                    140.0 * u,
+                    100.0 * u,
+                    rgb(255, 70, 60),
+                    0.9,
+                    clip,
+                );
+            }
+        }
+        _ => {
+            // UFO: a dome, a metallic disc, a ring of lights that chase around the rim, a soft beam
+            glow(
+                fb,
+                cx,
+                cy + 600.0 * u,
+                520.0 * u,
+                700.0 * u,
+                rgb(120, 255, 190),
+                0.25,
+                clip,
+            );
+            e(fb, 0.0, -170.0, 300.0, 230.0, rgb(150, 220, 240));
+            e(fb, 0.0, 0.0, 900.0, 170.0, rgb(168, 176, 190));
+            e(fb, 0.0, 90.0, 520.0, 90.0, rgb(112, 120, 134));
+            for i in 0..8 {
+                let a = i as f32 / 8.0 * std::f32::consts::TAU;
+                let on = ((t * 3.0 + i as f32 / 8.0).fract()) < 0.4;
+                let c = if on {
+                    rgb(255, 240, 120)
+                } else {
+                    rgb(120, 110, 40)
+                };
+                e(fb, a.cos() * 760.0, a.sin() * 100.0 + 10.0, 50.0, 40.0, c);
+            }
+        }
+    }
+}
+
 /// Helicopter seen from behind and below; `alt` is the height of the skids above the ground in
 /// world units (0: landed with the rotor slowing down).
 pub(super) fn draw_heli(
@@ -1913,7 +2194,9 @@ pub(super) fn draw_emergency_seg(fb: &mut [u32], g: &Game, sp: &SegProj, idx: us
         let s = lerp(sp.s1, sp.s2, pct);
         let cx = lerp(sp.x1, sp.x2, pct) + s * e.x * ROAD_W * vwf / 2.0;
         let by = lerp(sp.y1, sp.y2, pct);
-        if e.kind >= 2 {
+        if e.kind >= 20 {
+            draw_aerial(fb, cx, by, s * vwf / 2.0, e.kind, g.elapsed, sp.clip);
+        } else if e.kind >= 2 {
             draw_other_special(
                 fb,
                 cx,

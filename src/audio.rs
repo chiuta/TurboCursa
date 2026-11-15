@@ -341,6 +341,50 @@ fn special(kind: u8, ts: f32, sr: f32, ph: &mut f32, lp: &mut f32, n: f32) -> f3
             *lp += 0.3 * (saw(ph, 180.0) - *lp);
             *lp * 0.9 + tone(360.0) * 0.12 * ((TAU * 5.0 * ts).sin() * 0.5 + 0.5)
         }
+        20 => {
+            // airliner: a broad jet roar with a low whine
+            *lp += 0.035 * (n - *lp);
+            *lp * 3.2 + saw(ph, 118.0) * 0.1
+        }
+        21 => {
+            // banner biplane: a droning propeller with a flutter
+            *lp += 0.1 * (saw(ph, 92.0) - *lp);
+            *lp * (1.0 + 0.4 * (TAU * 11.0 * ts).sin()) + tone(184.0) * 0.12
+        }
+        22 => {
+            // hot-air balloon: the burner's whoosh every few seconds over a quiet hush
+            *lp += 0.12 * (n - *lp);
+            (if gate(2.5, 0.4) { *lp * 2.4 } else { 0.0 }) + (n - *lp) * 0.12
+        }
+        23 => {
+            // airship: a deep, steady hum with a beating overtone
+            tone(55.0) * 0.7 + tone(58.0) * 0.5 + tone(110.0) * 0.2
+        }
+        24 => {
+            // delivery drone: a high whine with a wobble
+            *lp += 0.4 * (saw(ph, 520.0) - *lp);
+            *lp * 0.7 + tone(1040.0 + 40.0 * (TAU * 3.0 * ts).sin()) * 0.12
+        }
+        25 => {
+            // fighter jets: a harsh roar sweeping upward
+            *lp += 0.45 * (n - *lp);
+            (n - *lp) * 1.5 + tone(300.0 + 220.0 * (TAU * 0.4 * ts).sin()) * 0.2
+        }
+        26 => {
+            // paraglider: wind in the canopy
+            *lp += 0.03 * (n - *lp);
+            (n - *lp) * 0.6 * (0.6 + 0.4 * (TAU * 0.8 * ts).sin()) + *lp * 3.0
+        }
+        27 => {
+            // air ambulance: rotor chop
+            *lp += 0.1 * (saw(ph, 45.0) - *lp);
+            *lp * (0.5 + 1.1 * if gate(0.07, 0.5) { 1.0 } else { 0.0 }) * 1.3
+        }
+        28 => {
+            // UFO: an eerie warble
+            let f = 300.0 + 90.0 * (TAU * 0.5 * ts).sin();
+            (tone(f) * 0.45 + tone(f * 1.5) * 0.25) * (0.7 + 0.3 * (TAU * 6.0 * ts).sin())
+        }
         _ => 0.0,
     }
 }
