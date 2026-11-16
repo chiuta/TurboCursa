@@ -39,7 +39,7 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
         with:
           targets: ${{ matrix.target }}
-      - name: Debian 11 is end-of-life: use the archive mirror
+      - name: Debian 11 is end-of-life, use the archive mirror
         if: matrix.container != ''
         run: |
           for f in /etc/apt/sources.list /etc/apt/sources.list.d/*; do
