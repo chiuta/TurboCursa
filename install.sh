@@ -16,8 +16,14 @@ case "$(uname -m)" in
   arm64|aarch64) ARCH=arm64 ;;
   *) ARCH=unknown ;;
 esac
-NAME="turbocursa-${OS}-${ARCH}.tar.gz"
 BASE="https://github.com/${REPO}/releases/latest/download"
+# Linux x86-64: newest build first, then builds linked against older glibc versions (the first one
+# that verifies and starts on this system is installed)
+if [ "$OS" = linux ] && [ "$ARCH" = x86_64 ]; then
+  VARIANTS="linux-x86_64 linux-x86_64-glibc2.35 linux-x86_64-glibc2.31"
+else
+  VARIANTS="${OS}-${ARCH}"
+fi
 mkdir -p "$BIN"
 TMP="$(mktemp -d)"; trap 'rm -rf "$TMP"' EXIT
 sha256_of() {
@@ -35,17 +41,30 @@ fetch_verified() {
     echo "Checksum mismatch (or no sha256 tool); refusing to install."; return 1
   fi
 }
-if fetch_verified; then
+INSTALLED=""
+for V in $VARIANTS; do
+  NAME="turbocursa-${V}.tar.gz"
+  fetch_verified || continue
+  rm -f "$TMP/turbocursa"
   # unpack only the one file we expect
-  tar -xzf "$TMP/pkg.tar.gz" -C "$TMP" turbocursa 2>/dev/null || tar -xzf "$TMP/pkg.tar.gz" -C "$TMP" ./turbocursa
-  install -m 755 "$TMP/turbocursa" "$BIN/turbocursa"
-  echo "Installed: $BIN/turbocursa (checksum verified)"
+  tar -xzf "$TMP/pkg.tar.gz" -C "$TMP" turbocursa 2>/dev/null || tar -xzf "$TMP/pkg.tar.gz" -C "$TMP" ./turbocursa || continue
+  chmod +x "$TMP/turbocursa"
+  # an unpacked binary that cannot start (for example a glibc that is too old) is skipped
+  if "$TMP/turbocursa" --version >/dev/null 2>&1; then
+    install -m 755 "$TMP/turbocursa" "$BIN/turbocursa"
+    echo "Installed: $BIN/turbocursa ($V, checksum verified)"
+    INSTALLED=1; break
+  fi
+  echo "The ${V} build does not start on this system; trying an older one."
+done
+if [ -n "$INSTALLED" ]; then
+  :
 elif command -v cargo >/dev/null 2>&1; then
-  echo "No release binary for ${OS}-${ARCH}; building from source (a few minutes)..."
+  echo "No usable release binary for ${OS}-${ARCH}; building from source (a few minutes)..."
   cargo install --git "https://github.com/${REPO}" --features native,audio --bin turbo --root "${HOME}/.local" --force
   mv "$BIN/turbo" "$BIN/turbocursa"
 else
-  echo "No release binary for ${OS}-${ARCH} and cargo is not installed."
+  echo "No usable release binary for ${OS}-${ARCH} and cargo is not installed."
   echo "Install Rust from https://rustup.rs and run this script again."; exit 1
 fi
 if [ "$OS" = linux ]; then

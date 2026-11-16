@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.17.0
+
+### Added
+- **Linux builds for older systems**: besides `turbocursa-linux-x86_64.tar.gz` (built on Ubuntu 26.04) the release now also has `turbocursa-linux-x86_64-glibc2.35.tar.gz` (built on Ubuntu 22.04; runs on Ubuntu 22.04+, Debian 12+) and `turbocursa-linux-x86_64-glibc2.31.tar.gz` (built in a Debian 11 container; meant for Ubuntu 20.04+, Debian 11+). The one-line installer (`install.sh`) tries the newest first, verifies each download against `SHA256SUMS`, runs `turbocursa --version` and falls back to the next older build if the binary does not start; only then does it build from source. Tested with a mock release; the download page offers the three files with a note in 8 languages.
+
+### Not verified
+- The glibc 2.31 build runs in a container job marked experimental (a failure there does not block the release): it was never built before this version, so it may be missing from the release. None of the Linux builds was started on a real older distribution.
+
 ## 1.16.0
 
 ### Changed
