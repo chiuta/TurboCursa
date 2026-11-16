@@ -42,7 +42,8 @@ fn main() {
         let fb = scene(Some(kind));
         let (mut x0, mut y0, mut x1, mut y1) = (w, h, 0, 0);
         let ytop = if (20..=28).contains(&kind) { 40 } else { 300 };
-        for y in ytop..740 {
+        let ybot = if (20..=28).contains(&kind) { 560 } else { 740 };
+        for y in ytop..ybot {
             for x in 200..1340 {
                 let (a, b) = (fb[y * w + x], base[y * w + x]);
                 let d = |s: u32| ((a >> s) & 255).abs_diff((b >> s) & 255);

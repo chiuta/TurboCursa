@@ -1539,6 +1539,29 @@ pub(super) fn draw_aerial(fb: &mut [u32], cx: f32, by: f32, u: f32, kind: u8, t:
     let alt = crate::game::Emerg::altitude(kind);
     let bob = 120.0 * (t * 0.9 + kind as f32).sin();
     let cy = by - (alt + bob) * u;
+    // a soft shadow on the road: wider for bigger aircraft, fainter the higher it flies
+    let span = match kind {
+        20 => 2200.0,
+        21 => 1100.0,
+        22 => 720.0,
+        23 => 1500.0,
+        24 => 420.0,
+        25 => 1350.0,
+        26 => 920.0,
+        27 => 1000.0,
+        _ => 900.0,
+    };
+    let fade = (1.0 - alt / 9000.0).clamp(0.25, 0.9);
+    ellipse_a(
+        fb,
+        cx,
+        by - 6.0 * u,
+        span * 0.7 * u,
+        span * 0.12 * u,
+        rgb(0, 0, 0),
+        0.35 * fade,
+        clip,
+    );
     let blink = (t * 3.0).fract() < 0.25;
     let white = rgb(238, 240, 246);
     let grey = rgb(150, 156, 168);

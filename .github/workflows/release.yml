@@ -2,7 +2,7 @@ name: release
 
 # Builds the native game for Linux, Windows and macOS, the single-file web build and the
 # source zip, then publishes them as a GitHub release.
-#   - push a tag:      git tag v1.15.0 && git push origin v1.15.0
+#   - push a tag:      git tag v1.16.0 && git push origin v1.16.0
 #   - or run manually: Actions > release > Run workflow (it creates the tag for you)
 on:
   push:
@@ -11,7 +11,7 @@ on:
     inputs:
       tag:
         description: "Release tag"
-        default: "v1.15.0"
+        default: "v1.16.0"
 
 permissions:
   contents: write
@@ -22,13 +22,13 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - { os: ubuntu-22.04, name: linux-x86_64, target: "", dir: target/release, bin: turbo }
+          - { os: ubuntu-26.04, name: linux-x86_64, target: "", dir: target/release, bin: turbo }
           - { os: windows-latest, name: windows-x86_64, target: "", dir: target/release, bin: turbo.exe }
           - { os: macos-latest, name: macos-arm64, target: "", dir: target/release, bin: turbo }
           - { os: macos-latest, name: macos-x86_64, target: x86_64-apple-darwin, dir: target/x86_64-apple-darwin/release, bin: turbo }
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: dtolnay/rust-toolchain@stable
         with:
           targets: ${{ matrix.target }}
@@ -55,30 +55,30 @@ jobs:
           Copy-Item ${{ matrix.dir }}/${{ matrix.bin }} pkg/turbocursa.exe
           Copy-Item LICENSE,README.md pkg/
           Compress-Archive -Path pkg/* -DestinationPath turbocursa-${{ matrix.name }}.zip
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: native-${{ matrix.name }}
           path: turbocursa-${{ matrix.name }}.*
 
   web:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: dtolnay/rust-toolchain@stable
         with:
           targets: wasm32-unknown-unknown
       - run: ./build_web.sh
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: web
           path: dist/turbocursa.html
 
   publish:
     needs: [native, web]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/download-artifact@v4
+      - uses: actions/checkout@v6
+      - uses: actions/download-artifact@v8
         with:
           path: out
           merge-multiple: true

@@ -1,5 +1,17 @@
 # Changelog
 
+## 1.16.0
+
+### Changed
+- **CI and release builds now run on Ubuntu 26.04** (`ubuntu-26.04`) instead of `ubuntu-latest` / `ubuntu-22.04`, and the workflows use the Node 24 versions of the GitHub actions (`checkout@v6`, `upload-artifact@v7`, `download-artifact@v8`). Consequence: the Linux binary is now linked against the newer glibc of Ubuntu 26.04 and may not start on older distributions; building from source (`cargo run --release`) still works anywhere.
+
+### Added
+- Aerial special vehicles now cast a soft shadow on the road, fainter the higher they fly.
+- README lists all 29 special vehicles.
+
+### Not verified
+- The first CI run on Ubuntu 26.04 (the project has only been built there by this release), the Linux binary on older distributions, and the sound on real speakers.
+
 ## 1.15.0
 
 ### Added
