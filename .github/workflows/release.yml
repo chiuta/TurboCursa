@@ -39,6 +39,15 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
         with:
           targets: ${{ matrix.target }}
+      - name: Debian 11 is end-of-life: use the archive mirror
+        if: matrix.container != ''
+        run: |
+          for f in /etc/apt/sources.list /etc/apt/sources.list.d/*; do
+            [ -f "$f" ] || continue
+            sed -i 's|http://deb.debian.org/debian-security|http://archive.debian.org/debian-security|g; s|http://security.debian.org/debian-security|http://archive.debian.org/debian-security|g; s|http://deb.debian.org/debian|http://archive.debian.org/debian|g' "$f"
+            sed -i '/bullseye-updates/d' "$f"
+          done
+          echo 'Acquire::Check-Valid-Until "false";' > /etc/apt/apt.conf.d/99archive
       - name: Linux audio headers
         if: runner.os == 'Linux'
         run: |
