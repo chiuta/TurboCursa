@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.19.0
+
+### Added
+- **Showcase stages**: twelve curated stages with a fixed layout (landscapes in a chosen order, twist, hills, length), weather, surface and time of day. `turbo --showcase` lists their `TCS1-...` codes and `turbo --showcase N` (1 to 12) drives one; the codes never change. New module `src/showcase.rs` and `tests/showcase.rs` (round trip, distinct codes, each builds and runs).
+- `CONTRIBUTING.md`, `THIRD_PARTY_LICENSES.md` (all dependencies are permissive) and issue templates for playtests and old-Linux reports.
+
+### Not verified
+- Whether the twelve stages are actually fun: they were chosen to differ, not play-tested by anyone else. The browser page has no menu entry for them yet (use the stage code field).
+
 ## 1.18.0
 
 ### Changed

@@ -39,6 +39,7 @@ pub mod render;
 pub mod rng;
 pub mod settings;
 pub mod share;
+pub mod showcase;
 pub mod track;
 pub mod versus;
 #[cfg(any(target_arch = "wasm32", feature = "web"))]

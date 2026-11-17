@@ -179,6 +179,7 @@ const KNOWN_FLAGS: &[&str] = &[
     "--champ",
     "--class",
     "--code",
+    "--showcase",
     "--colorblind",
     "--cpu",
     "--daily",
@@ -276,6 +277,12 @@ fn main() {
             .and_then(|i| args.get(i + 1))
             .cloned()
     };
+    if args.iter().any(|a| a == "--showcase") && arg("--showcase").is_none() {
+        for (i, c) in turbocursa::showcase::codes().iter().enumerate() {
+            println!("{:2}  {}", i + 1, c);
+        }
+        return;
+    }
     // settings: --music 0-3 (normal, calm, drive, off), --mph, --keys 0-3, --secret CODE (paint jobs)
     let set_path = std::env::var("HOME")
         .map(std::path::PathBuf::from)
@@ -341,7 +348,7 @@ fn main() {
     garage.apply();
     let stock = args
         .iter()
-        .any(|a| a == "--daily" || a == "--weekly" || a == "--code");
+        .any(|a| a == "--daily" || a == "--weekly" || a == "--code" || a == "--showcase");
     turbocursa::garage::set_stock(stock);
     let weekly_on = args.iter().any(|a| a == "--weekly");
     let daily_cfg = if args.iter().any(|a| a == "--daily") {
@@ -726,8 +733,15 @@ fn main() {
     };
     // --code TCS1-...: drive a shared stage; --design: build one (Enter drives it, Backspace edits)
     let design = args.iter().any(|a| a == "--design");
+    // --showcase [1-12]: a curated stage with a fixed layout (no number: list them)
+    let showcase = arg("--showcase")
+        .and_then(|n| n.parse::<usize>().ok())
+        .and_then(turbocursa::showcase::stage);
+    if arg("--showcase").is_some() && showcase.is_none() {
+        eprintln!("--showcase takes 1..={}", turbocursa::showcase::COUNT);
+    }
     let mut stage_code: Option<turbocursa::share::StageCode> =
-        arg("--code").and_then(|c| turbocursa::share::StageCode::decode(&c));
+        showcase.or_else(|| arg("--code").and_then(|c| turbocursa::share::StageCode::decode(&c)));
     if arg("--code").is_some() && stage_code.is_none() {
         eprintln!("invalid stage code");
     }
