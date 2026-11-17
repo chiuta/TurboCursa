@@ -604,6 +604,8 @@ pub struct Game {
     pub missions_done: u32,
     pub emerg: Vec<Emerg>,
     next_emerg: f32,
+    /// When the next aircraft may cross the sky (aircraft have their own, shorter timer).
+    next_air: f32,
     block_t: f32,
     pub emerg_passed: u32,
     scene_warn: usize,
@@ -1088,6 +1090,7 @@ impl Game {
             missions_done: 0,
             emerg: Vec::new(),
             next_emerg: 28.0,
+            next_air: 14.0,
             block_t: 0.0,
             emerg_passed: 0,
             scene_warn: usize::MAX,

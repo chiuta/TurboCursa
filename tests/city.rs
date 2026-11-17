@@ -317,6 +317,8 @@ fn an_ambulance_overtakes_and_making_room_pays() {
     g.elapsed = 30.0;
     place(&mut g, z, 0.0, 0.0, 6000.0);
     step(&mut g, 2, true);
+    // aircraft have their own timer and may be up there as well: this test is about the road
+    g.emerg.retain(|e| !Emerg::is_air(e.kind));
     assert_eq!(g.emerg.len(), 1);
     // the spawn is random among all special vehicles: this test is about the sirens
     if g.emerg[0].kind > 1 {
@@ -349,6 +351,8 @@ fn blocking_an_ambulance_is_an_offence() {
     g.elapsed = 30.0;
     place(&mut g, z, 0.0, 0.0, 3000.0);
     step(&mut g, 2, true);
+    // aircraft have their own timer and may be up there as well: this test is about the road
+    g.emerg.retain(|e| !Emerg::is_air(e.kind));
     assert_eq!(g.emerg.len(), 1);
     if g.emerg[0].kind > 1 {
         g.emerg.clear();

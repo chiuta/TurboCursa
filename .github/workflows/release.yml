@@ -3,7 +3,7 @@ name: release
 # Builds the native game for Linux (three glibc levels: Ubuntu 26.04, Ubuntu 22.04 = glibc 2.35 and
 # Debian 11 = glibc 2.31), Windows and macOS, the single-file web build and the
 # source zip, then publishes them as a GitHub release.
-#   - push a tag:      git tag v1.17.0 && git push origin v1.17.0
+#   - push a tag:      git tag v1.18.0 && git push origin v1.18.0
 #   - or run manually: Actions > release > Run workflow (it creates the tag for you)
 on:
   push:
@@ -12,7 +12,7 @@ on:
     inputs:
       tag:
         description: "Release tag"
-        default: "v1.17.0"
+        default: "v1.18.0"
 
 permissions:
   contents: write

@@ -572,16 +572,15 @@ impl Game {
         let in_jam = self.city.jam_at(seg).is_some() || self.detour.is_some();
         if traffic
             && !zen
-            && self.emerg.is_empty()
+            && !self.emerg.iter().any(|e| !Emerg::is_air(e.kind))
             && self.elapsed >= self.next_emerg
             && pz > 12000.0
             && !in_jam
             && self.city.scenes.iter().all(|&z| (z - pz).abs() > 12000.0)
         {
             // ambulances and fire engines are the most common; the snowplough needs snow
-            const POOL: [u8; 33] = [
+            const POOL: [u8; 24] = [
                 0, 0, 0, 1, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 11, 12, 13, 14, 15, 16, 17, 18, 19,
-                20, 21, 22, 23, 24, 25, 26, 27, 28,
             ];
             let mut kind = POOL[(self.fx_rng.f() * POOL.len() as f32) as usize % POOL.len()];
             if kind == 2
@@ -618,6 +617,32 @@ impl Game {
                 warned: !siren,
             });
             self.next_emerg = self.elapsed + 40.0 + self.fx_rng.f() * 25.0;
+        }
+        // aircraft cross the sky on their own, shorter timer: one at a time, never colliding
+        if traffic
+            && !zen
+            && pz > 6000.0
+            && self.elapsed >= self.next_air
+            && !self.emerg.iter().any(|e| Emerg::is_air(e.kind))
+        {
+            const AIR: [u8; 9] = [20, 21, 22, 23, 24, 25, 26, 27, 28];
+            let kind = AIR[(self.fx_rng.f() * AIR.len() as f32) as usize % AIR.len()];
+            let side = if self.fx_rng.f() < 0.5 { -1.0 } else { 1.0 };
+            let lane = side * (0.2 + 1.2 * self.fx_rng.f());
+            self.emerg.push(Emerg {
+                kind,
+                z: if Emerg::is_ahead(kind) {
+                    pz + 16000.0
+                } else {
+                    pz - 11000.0
+                },
+                x: lane,
+                speed: MAX_SPEED * Emerg::cruise(kind).unwrap_or(0.7),
+                target: lane,
+                passed: false,
+                warned: true,
+            });
+            self.next_air = self.elapsed + 22.0 + self.fx_rng.f() * 20.0;
         }
         let cars: Vec<(f32, f32)> = self.cars.iter().map(|c| (c.z, c.x)).collect();
         let mut blocked = false;

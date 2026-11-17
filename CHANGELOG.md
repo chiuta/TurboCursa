@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.18.0
+
+### Changed
+- **Aircraft appear more often**: they now have their own spawn timer (one every 22 to 42 seconds, one at a time, in the sky above cities, jams and open road alike) instead of sharing the 40 to 65 second timer and the single slot of the ground special vehicles. In six simulated runs that accelerate only, aircraft went from about one per run to about four or five per run. The ground special vehicles keep their old rate and no longer wait for an aircraft to leave.
+- `examples/air_freq.rs` counts how often each kind appears in simulated runs.
+
+### Not verified
+- How often aircraft appear for a real driver (the simulation only accelerates), and whether once every 22 to 42 seconds feels too busy.
+
 ## 1.17.0
 
 ### Added
