@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+- The game page (`docs/turbocursa.html`) and the landing page (`docs/index.html`) run in older browsers (Chrome/Edge 55+, Firefox 52+, Safari 10.1+/iOS 10.3+): the fff-kit 1.8.0 compatibility layer supplies fallbacks for APIs that old engines lack, and JavaScript syntax newer than ES2017 was replaced with equivalent forms. No functional change intended.
+
+### Not verified
+- Not tried on real old devices; checked with an ES2017 parser and in a simulated old engine.
+
 ## 1.19.0
 
 ### Added
