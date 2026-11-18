@@ -1,0 +1,29 @@
+{
+  "pages": "docs",
+  "html": [
+    "index.html",
+    "turbocursa.html"
+  ],
+  "patterns": [
+    {
+      "file": "docs/index.html",
+      "regex": "\"limits_p\":\"[^\"]*?(\\d+\\.\\d+\\.\\d+)"
+    },
+    {
+      "file": "docs/index.html",
+      "regex": "</strong> (\\d+\\.\\d+\\.\\d+)</p>"
+    },
+    {
+      "file": "docs/sw.js",
+      "regex": "turbocursa-(\\d+\\.\\d+\\.\\d+)"
+    },
+    {
+      "file": "web/pwa/sw.js",
+      "regex": "turbocursa-(\\d+\\.\\d+\\.\\d+)"
+    },
+    {
+      "file": "docs/index.html",
+      "regex": "data-i18n=\"limits_p\">[^<]*?(\\d+\\.\\d+\\.\\d+)"
+    }
+  ]
+}

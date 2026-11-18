@@ -119,3 +119,33 @@ jobs:
             || gh release upload "$TAG" out/* --clobber
           # make it the "latest" release so releases/latest/download/... links work
           gh release edit "$TAG" --prerelease=false --latest
+
+  # After the release exists: put the released engine into the published game page and refresh the
+  # version stamps (landing page text, app.json, sw.js cache name). Runs on main, never on the tag.
+  pages:
+    needs: [publish]
+    runs-on: ubuntu-26.04
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: main
+      - uses: actions/download-artifact@v8
+        with:
+          name: web
+          path: web-dist
+      - name: Embed the released wasm and stamp the version
+        env:
+          TAG: ${{ github.event.inputs.tag || github.ref_name }}
+        run: |
+          cargo_ver=$(sed -n 's/^version *= *"\([^"]*\)".*/\1/p' Cargo.toml | head -1)
+          if [ "v$cargo_ver" != "$TAG" ]; then echo "main is at $cargo_ver, release is $TAG: pages left alone"; exit 0; fi
+          python3 -I scripts/embed-wasm.py web-dist/turbocursa.html docs/turbocursa.html
+          python3 -I scripts/sync-version.py
+      - name: Commit and push if anything changed
+        run: |
+          git add -A docs web
+          git diff --cached --quiet && { echo "nothing to commit"; exit 0; }
+          git config user.name "pages (CI)"
+          git config user.email "alexio@trom.tf"
+          git commit -m "docs: game page with the released engine and version stamps [skip ci]"
+          git push
