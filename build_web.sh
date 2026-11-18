@@ -7,7 +7,9 @@ mkdir -p dist
 python3 - <<'PY'
 import base64
 wasm = open("target/wasm32-unknown-unknown/release/turbocursa.wasm", "rb").read()
-t = open("web/index.template.html").read().replace("__WASM_B64__", base64.b64encode(wasm).decode())
+import re
+ver = re.search(r'^version\s*=\s*"([^"]+)"', open("Cargo.toml").read(), re.M).group(1)
+t = open("web/index.template.html").read().replace("__WASM_B64__", base64.b64encode(wasm).decode()).replace("__VERSION__", ver)
 open("dist/turbocursa.html", "w").write(t)
 print("dist/turbocursa.html ready (%d bytes)" % len(t))
 PY
