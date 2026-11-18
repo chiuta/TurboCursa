@@ -3,6 +3,7 @@
 ## Unreleased
 
 ### Changed
+- The web game (`docs/turbocursa.html`) embedded the 1.10.2 engine; it now embeds the WebAssembly module of the 1.19.0 release (the web template has not changed since 1.10.2). The landing page said “version 1.7” and now says 1.19.0, and both pages and `docs/app.json` declare the version (`application-version`).
 - The game page (`docs/turbocursa.html`) and the landing page (`docs/index.html`) run in older browsers (Chrome/Edge 55+, Firefox 52+, Safari 10.1+/iOS 10.3+): the fff-kit 1.8.0 compatibility layer supplies fallbacks for APIs that old engines lack, and JavaScript syntax newer than ES2017 was replaced with equivalent forms. No functional change intended.
 
 ### Not verified
