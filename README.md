@@ -2,7 +2,7 @@
 
 # **TURBOCURSA**
 
-Version: 1.5 · Last updated: 12 November 2026
+Version: 1.20.0 · Last updated: 18 November 2026
 
 ## What it is
 
@@ -81,6 +81,22 @@ Every country has its own race car: a livery painted from its national colours (
 - **Missions, proving ground, parking** — pick up a parcel or a passenger and deliver it to the bay before the clock runs out; the route has a proving ground (slope, slalom rings, a ramp) and parking lots announced by gantries, each paying a bonus.
 - **Unlockable service vehicles** — police car (10 clean cities), ambulance (8 deliveries), fire engine (3 daily challenges and 4 proving-ground or parking bonuses), helicopter (the other three plus 7 daily challenges). They may break traffic rules, traffic gives way, and the helicopter flies over traffic and lands when slow.
 - **Events and extras** — championships of 7, 10 or 15 stages and the eight-stage tour of a country (`--champ`, `--tour`, code `TCC1-…`); a weekly challenge with a rotating modifier (`--weekly`); ghost import and export (`--ghost`, `--ghost-export`); a visible pack of 8–16 rivals with a grid, inverted grid and qualifying lap (`--pack`, `--inverted`, `--qualify`); 3–4 player split screen with CPU fill (`--players`); route forks (quick on the left, scenic on the right) with the helicopter pointing the way; a pursuit with the police car; an overtake chain worth 200 up to 2000; a garage where coins buy upgrades (`--garage`, `--buy`); music styles, mph, key layouts and secret paint codes (`--music`, `--mph`, `--keys`, `--secret`); sirens for the police car, ambulance and fire engine. All of this can be set on the **EXTRAS** page of the start screen (Backspace on the vehicle screen). A code field there (⌨ in the browser) takes a championship, stage, ghost, paint word, DAILY or WEEKLY.
+- **Twelve showcase stages** — Curated stages with a fixed layout, weather and time of day: list them with --showcase, drive one with --showcase N, or open the web build with ?showcase=N.
+
+## How it compares, honestly
+
+We compared TURBOCURSA in November 2026 with the open-source and commercial pseudo-3D racers we could find. Facts come from public pages; the verdicts are ours, and since we wrote the code, read them with that in mind.
+
+- Where it wins: MIT licence and no assets from any other game (Cannonball needs the original ROMs and its libretro core is non-commercial; javascript-racer is a small tutorial), one codebase for desktop and browser, 8 languages, a binary of about 2.5 MB and about 200 automated tests.
+- On modes it is level with the commercial retro racers: career, championships, country tours, daily and weekly challenges, rally, 3–4 player split screen, ghosts, a stage designer and twelve curated stages.
+- Where it loses: picture and art. The base image is 640×400 scaled up and the vehicles are simple shapes, far from the polish of Slipstream or the 4K look of Horizon Chase.
+- Where it loses: proof. One author and a first release in November 2026, with no outside playtesters, while the commercial games have thousands of player reviews and years of tuning.
+- Where it loses: stages and music. Most stages are generated from a seed, while commercial titles ship dozens of hand-designed tracks and composed soundtracks; ours is synthesised and was never heard on real speakers.
+- Not affiliated with any commercial game or brand, and no code, assets or trademarks were copied.
+
+The audit for version 1.20.0 ran hostile-input tests over every stage and vehicle class and found two real bugs: a view smaller than 16×10 pixels crashed the renderer, and a NaN siren position could corrupt the stereo mix. Both are fixed and covered by tests.
+
+Contributing: see CONTRIBUTING.md (clean-room rules; playtest and old-Linux reports welcome). Dependency licences: THIRD_PARTY_LICENSES.md.
 
 ## Limits
 
@@ -96,6 +112,7 @@ Every country has its own race car: a livery painted from its national colours (
 - City, jam, detour and emergency-vehicle rules were balanced and tested only with simulated drivers, not with real players.
 - Missions, proving-ground and parking balance and the unlock thresholds were tuned with simulated drivers only, not with real players.
 - The new events and extras were tested with simulated drivers and automated checks only: the sound (music styles, sirens) was not listened to, nothing was tried on a physical gamepad or phone, the balance has not been played by real people, and online leaderboards are not included because they need a server.
+- The twelve showcase stages differ on purpose, but nobody except the author has played them. The comparison with other games rests on public web pages read in November 2026 and on our own tests: we did not play the commercial titles.
 
 ## License
 

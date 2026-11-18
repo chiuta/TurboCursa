@@ -2,7 +2,7 @@
 
 # **TURBOCURSA**
 
-Versiune: 1.5 · Ultima actualizare: 12 noiembrie 2026
+Versiune: 1.20.0 · Ultima actualizare: 18 noiembrie 2026
 
 ## Ce este
 
@@ -83,6 +83,23 @@ Fiecare țară are propria mașină de curse: o livrea pictată din culorile na�
 - **Misiuni, poligon, parcări** — preia un colet sau un pasager și lasă-l în golful de destinație înainte să expire timpul; traseul are poligon (pantă, inele de slalom, rampă) și parcări anunțate de portaluri, fiecare cu bonus.
 - **Vehicule de serviciu deblocabile** — mașina de poliție (10 orașe fără greșeli), ambulanța (8 livrări), autospeciala de pompieri (3 provocări zilnice și 4 bonusuri de poligon sau parcare), elicopterul (celelalte trei plus 7 provocări zilnice). Pot încălca regulile, traficul le face loc, iar elicopterul zboară peste trafic și aterizează când merge încet.
 - **Evenimente și extra** — campionate de 7, 10 sau 15 etape și turul de opt etape al unei țări (`--champ`, `--tour`, cod `TCC1-…`); provocare săptămânală cu un modificator care se schimbă (`--weekly`); import și export de fantome (`--ghost`, `--ghost-export`); pluton vizibil de 8–16 rivali cu grilă, grilă inversată și tur de calificare (`--pack`, `--inverted`, `--qualify`); ecran împărțit pentru 3–4 jucători cu completare de la calculator (`--players`); bifurcații (rapidă la stânga, panoramică la dreapta) cu elicopterul care arată drumul; urmărire cu mașina de poliție; lanț de depășiri de la 200 până la 2000; garaj unde monedele cumpără îmbunătățiri (`--garage`, `--buy`); stiluri de muzică, mph, scheme de taste și coduri secrete de vopsea (`--music`, `--mph`, `--keys`, `--secret`); sirene pentru mașina de poliție, ambulanță și autospecială. Totul se poate regla din pagina **EXTRAS** a ecranului de start (Backspace pe ecranul vehiculului). Un câmp de cod (⌨ în browser) primește un campionat, o etapă, o fantomă, un cuvânt de vopsea, DAILY sau WEEKLY.
+- **Vehicule speciale în trafic** — Pe drum și pe cer apar douăzeci și nouă de vehicule speciale: nouă zboară (avion de linie, biplan, balon, dirijabil, dronă, avioane de vânătoare, parapantă, elicopter SMURD, OZN), plus mașina de poliție care te urmărește și elicopterul de trafic de deasupra orașelor și ambuteiajelor. Sirenele, luminile și sunetele diferă la fiecare; aparatele de zbor nu se ciocnesc cu tine.
+- **Douăsprezece etape curate** — Etape alese, cu traseu fix, vreme și oră a zilei: le listezi cu --showcase, rulezi una cu --showcase N sau deschizi versiunea web cu ?showcase=N.
+
+## Cum stă față de alții, sincer
+
+Am comparat TURBOCURSA, în noiembrie 2026, cu jocurile de curse pseudo-3D open-source și comerciale pe care le-am găsit. Faptele vin din pagini publice; verdictele sunt ale noastre și, fiindcă noi am scris codul, citește-le cu această rezervă.
+
+- Unde câștigă: licență MIT și nicio resursă de la alt joc (Cannonball cere ROM-urile originale, iar nucleul lui libretro este necomercial; javascript-racer este un mic tutorial), același cod pentru desktop și browser, 8 limbi, un binar de circa 2,5 MB și circa 200 de teste automate.
+- La moduri e la egalitate cu jocurile retro comerciale: carieră, campionate, tururi pe țări, provocări zilnice și săptămânale, raliu, ecran împărțit pentru 3–4 jucători, fantome, un designer de etape și douăsprezece etape curate.
+- Unde pierde: imaginea și grafica. Imaginea de bază este 640×400 mărită, iar vehiculele sunt forme simple, departe de finisajul din Slipstream sau de aspectul 4K din Horizon Chase.
+- Unde pierde: dovezile. Un singur autor și prima lansare în noiembrie 2026, fără testeri din afară, în timp ce jocurile comerciale au mii de recenzii de la jucători și ani de reglaj.
+- Unde pierde: etapele și muzica. Cele mai multe etape sunt generate dintr-un seed, iar titlurile comerciale vin cu zeci de trasee proiectate manual și coloane sonore compuse; a noastră e sintetizată și nu a fost ascultată pe boxe reale.
+- Fără legătură cu vreun joc sau vreo marcă comercială; nu a fost copiat niciun cod, nicio resursă și nicio marcă.
+
+Auditul pentru versiunea 1.20.0 a rulat teste cu intrări ostile peste fiecare etapă și clasă de vehicul și a găsit două defecte reale: o vedere mai mică de 16×10 pixeli bloca randarea, iar o poziție NaN a sirenei putea strica mixajul stereo. Ambele sunt reparate și acoperite de teste.
+
+Contribuții: vezi CONTRIBUTING.md (reguli clean-room; rapoartele de playtest și de test pe Linux vechi sunt binevenite). Licențele dependențelor: THIRD_PARTY_LICENSES.md.
 
 ## Limite
 
@@ -98,6 +115,7 @@ Fiecare țară are propria mașină de curse: o livrea pictată din culorile na�
 - Regulile de oraș, ambuteiaj, ocolire și vehicule de urgență au fost echilibrate și testate doar cu șoferi simulați, nu cu jucători reali.
 - Echilibrul misiunilor, poligonului și parcărilor și pragurile de deblocare au fost reglate doar cu șoferi simulați, nu cu jucători reali.
 - Evenimentele și extra-urile noi au fost verificate doar cu șoferi simulați și teste automate: sunetul (stilurile de muzică, sirenele) nu a fost ascultat, nimic nu a fost încercat pe un gamepad fizic sau pe telefon, echilibrul nu a fost jucat de oameni, iar clasamentele online lipsesc pentru că ar cere un server.
+- Cele douăsprezece etape curate diferă intenționat, dar nimeni în afară de autor nu le-a jucat. Comparația cu alte jocuri se sprijină pe pagini web publice citite în noiembrie 2026 și pe testele noastre: nu am jucat titlurile comerciale.
 
 ## Licență
 

@@ -2,7 +2,7 @@
 
 # **TURBOCURSA**
 
-Versión: 1.5 · Última actualización: 12 de noviembre de 2026
+Versión: 1.20.0 · Última actualización: 18 de noviembre de 2026
 
 ## Qué es
 
@@ -83,6 +83,23 @@ Cada país tiene su propio coche de carreras: una librea pintada con los colores
 - **Misiones, campo de pruebas, aparcamientos** — recoge un paquete o un pasajero y déjalo en la bahía antes de que acabe el tiempo; el recorrido tiene un campo de pruebas (pendiente, aros de eslalon, rampa) y aparcamientos anunciados por pórticos, cada uno con bonus.
 - **Vehículos de servicio desbloqueables** — coche de policía (10 ciudades limpias), ambulancia (8 entregas), camión de bomberos (3 retos diarios y 4 bonus de campo de pruebas o aparcamiento), helicóptero (los otros tres más 7 retos). Pueden saltarse las normas, el tráfico se aparta, y el helicóptero sobrevuela el tráfico y aterriza a baja velocidad.
 - **Eventos y extras** — campeonatos de 7, 10 o 15 etapas y gira de ocho etapas por un país (`--champ`, `--tour`, código `TCC1-…`); desafío semanal con un modificador rotativo (`--weekly`); importar y exportar fantasmas (`--ghost`, `--ghost-export`); pelotón visible de 8 a 16 rivales con parrilla, parrilla invertida y vuelta de clasificación (`--pack`, `--inverted`, `--qualify`); pantalla dividida de 3–4 jugadores con relleno de CPU (`--players`); bifurcaciones (rápida a la izquierda, panorámica a la derecha) con el helicóptero señalando el camino; persecución con el coche de policía; cadena de adelantamientos de 200 a 2000; garaje donde las monedas compran mejoras (`--garage`, `--buy`); estilos de música, mph, distribuciones de teclas y códigos secretos de pintura (`--music`, `--mph`, `--keys`, `--secret`); sirenas para el coche de policía, la ambulancia y el camión de bomberos. Todo se ajusta en la página **EXTRAS** de la pantalla de inicio (Retroceso en la pantalla del vehículo). Un campo de código (⌨ en el navegador) acepta un campeonato, una etapa, un fantasma, una palabra de pintura, DAILY o WEEKLY.
+- **Vehículos especiales en el tráfico** — Veintinueve vehículos especiales comparten carretera y cielo: nueve vuelan (avión de pasajeros, biplano, globo, dirigible, dron, cazas, parapente, helicóptero sanitario, OVNI), además del coche de policía que te persigue y el helicóptero de tráfico sobre ciudades y atascos. Sirenas, luces y sonidos son distintos en cada uno; las aeronaves nunca chocan contigo.
+- **Doce etapas elegidas** — Etapas de trazado fijo, con clima y hora del día: lístalas con --showcase, juega una con --showcase N o abre la versión web con ?showcase=N.
+
+## Cómo se sitúa, con honestidad
+
+Comparamos TURBOCURSA, en noviembre de 2026, con los juegos de carreras pseudo-3D de código abierto y comerciales que encontramos. Los hechos vienen de páginas públicas; los veredictos son nuestros y, como escribimos el código, léelos con esa reserva.
+
+- Dónde gana: licencia MIT y ningún recurso de otro juego (Cannonball exige las ROM originales y su núcleo libretro es no comercial; javascript-racer es un pequeño tutorial), un solo código para escritorio y navegador, 8 idiomas, un binario de unos 2,5 MB y unas 200 pruebas automáticas.
+- En modos está a la par de los juegos retro comerciales: carrera, campeonatos, giras por países, retos diarios y semanales, rally, pantalla dividida para 3 o 4, fantasmas, un diseñador de etapas y doce etapas elegidas.
+- Dónde pierde: imagen y arte. La imagen base es de 640×400 ampliada y los vehículos son formas simples, lejos del acabado de Slipstream o del aspecto 4K de Horizon Chase.
+- Dónde pierde: las pruebas. Un solo autor y una primera versión en noviembre de 2026, sin probadores externos, mientras que los juegos comerciales tienen miles de reseñas de jugadores y años de ajuste.
+- Dónde pierde: etapas y música. La mayoría de las etapas se generan a partir de una semilla, mientras que los títulos comerciales traen decenas de circuitos diseñados a mano y bandas sonoras compuestas; la nuestra es sintetizada y nunca se ha oído en altavoces reales.
+- Sin relación con ningún juego ni marca comercial; no se copió código, recursos ni marcas.
+
+La auditoría de la versión 1.20.0 ejecutó pruebas con entradas hostiles sobre cada etapa y clase de vehículo y encontró dos fallos reales: una vista menor de 16×10 píxeles hacía fallar el renderizado y una posición NaN de la sirena podía estropear la mezcla estéreo. Ambos están corregidos y cubiertos por pruebas.
+
+Contribuir: consulta CONTRIBUTING.md (reglas clean-room; se agradecen los informes de pruebas de juego y de pruebas en Linux antiguos). Licencias de las dependencias: THIRD_PARTY_LICENSES.md.
 
 ## Límites
 
@@ -98,6 +115,7 @@ Cada país tiene su propio coche de carreras: una librea pintada con los colores
 - Las reglas de ciudad, atasco, desvío y vehículos de emergencia se equilibraron y probaron solo con conductores simulados, no con jugadores reales.
 - El equilibrio de misiones, campo de pruebas y aparcamientos y los umbrales de desbloqueo se ajustaron solo con pilotos simulados, no con jugadores reales.
 - Los nuevos eventos y extras solo se probaron con conductores simulados y comprobaciones automáticas: el sonido (estilos de música, sirenas) no se escuchó, nada se probó en un mando físico ni en un teléfono, el equilibrio no lo jugaron personas reales y faltan las clasificaciones en línea porque exigen un servidor.
+- Las doce etapas elegidas difieren a propósito, pero nadie salvo el autor las ha jugado. La comparación con otros juegos se apoya en páginas web públicas leídas en noviembre de 2026 y en nuestras propias pruebas: no jugamos los títulos comerciales.
 
 ## Licencia
 

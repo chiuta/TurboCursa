@@ -217,7 +217,10 @@ WebAssembly.instantiate(bytes,{}).then(({instance})=>{
  addEventListener("storage",ev=>{try{if(!ev.newValue||ev.newValue.length>=80)return;
   if(ev.key==="turbocursa.garage"&&!q.has("daily")&&!q.has("weekly"))e.garage_load(putText(ev.newValue));
   else if(ev.key==="turbocursa.settings")e.settings_load(putText(ev.newValue))}catch(x){}});
- const codeQ=(q.get("code")||"").trim();
+ /* ?showcase=1..12: the curated stages (same codes as `turbo --showcase`; tests/showcase.rs keeps them in step) */
+ const SHOW=["TCS1-00000-3E900-01011-20001-02031-11553","TCS1-00000-3EA00-02011-30405-06073-2114E","TCS1-00000-3EB00-02021-40809-0A0B2-31A50","TCS1-00000-3EC00-01011-10C0D-0E0F0-12103","TCS1-00000-3ED00-03052-20202-02021-112D3","TCS1-00000-3EE00-03075-20101-01011-22A4C","TCS1-00000-3EF00-03014-30303-03032-21D13","TCS1-00000-3F000-02041-41011-12003-10632","TCS1-00000-3F100-04031-40507-090B3-31B4F","TCS1-00000-3F200-02013-20404-04040-02ECE","TCS1-00000-3F300-03066-30D0E-0F102-21616","TCS1-00000-3F400-040A1-41112-00013-32901"];
+ const scN=+(q.get("showcase")||0);
+ const codeQ=((scN>=1&&scN<=SHOW.length?SHOW[scN-1]:q.get("code"))||"").trim();
  if(codeQ&&codeQ.length<80){const b=new TextEncoder().encode(codeQ);const p=e.buf_ptr(b.length);new Uint8Array(e.memory.buffer,p,b.length).set(b);
   if(e.code_load(b.length)){e.set_pick(0);modeCode=e.code_mode();bestKey="turbocursa.best.code."+codeQ.slice(0,40);e.init(e.code_seed()>>>0,modeCode)}}
  try{const sv=localStorage.getItem("turbocursa.profile");if(sv&&sv.length<512){const b=new TextEncoder().encode(sv);const p=e.buf_ptr(b.length);new Uint8Array(e.memory.buffer,p,b.length).set(b);e.profile_load(b.length)}}catch(x){}

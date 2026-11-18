@@ -1,5 +1,20 @@
 # Changelog
 
+## 1.20.0
+
+### Fixed (adversarial audit)
+- `render_view` crashed (`min > max` in a clamp) when the view was smaller than about 16×10 pixels; such views now render black.
+- A NaN or infinite siren position/pan (`AudioParams.emerg_pan`) poisoned the whole stereo mix; the pan and the closeness are now sanitised like the other parameters.
+
+### Added
+- `tests/audit_showcase.rs`: every showcase stage × every vehicle class for 1,200 hostile steps (random input, frame times from 0 to 5 s), aircraft at distances from 0 to 1e38, renders at odd sizes, and audio for every special kind with NaN/infinite values.
+- `?showcase=1..12` in the browser build (same codes as `turbo --showcase`; a test keeps the page and the list in step).
+- Documentation: an honest comparison section (what wins, what loses, what was not verified) and the showcase stages in all eight README files and in the presentation page (8 languages); the READMEs carried version 1.5 before.
+
+### Not verified
+- The comparison rests on public web pages read in November 2026 and on our own tests; no commercial game was played.
+- The older Linux binaries were still not run on real Ubuntu 20.04 or Debian 11 (no container runtime in the authoring sandbox).
+
 ## Unreleased
 
 ### Changed

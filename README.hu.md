@@ -2,7 +2,7 @@
 
 # **TURBOCURSA**
 
-Verzió: 1.5 · Utolsó frissítés: 2026. november 12.
+Verzió: 1.20.0 · Utolsó frissítés: 2026. november 18.
 
 ## Mi ez
 
@@ -83,6 +83,23 @@ Minden országnak saját versenyautója van: nemzeti színekkel festett (közel�
 - **Megbízások, gyakorlópálya, parkolók** — vegyél fel egy csomagot vagy utast, és tedd le a megállóban az idő lejárta előtt; az úton gyakorlópálya (lejtő, szlalomgyűrűk, rámpa) és hidakkal jelzett parkolók vannak, mindegyik bónusszal.
 - **Feloldható szolgálati járművek** — rendőrautó (10 hibátlan város), mentő (8 kiszállítás), tűzoltóautó (3 napi kihívás és 4 pálya- vagy parkolóbónusz), helikopter (a másik három plusz 7 kihívás). Megszeghetik a szabályokat, a forgalom kitér, a helikopter átrepül a forgalom felett, lassan pedig leszáll.
 - **Események és extrák** — 7, 10 vagy 15 szakaszos bajnokságok és egy ország nyolcszakaszos körútja (`--champ`, `--tour`, `TCC1-…` kód); heti kihívás váltakozó módosítóval (`--weekly`); szellemek importja és exportja (`--ghost`, `--ghost-export`); látható, 8–16 riválisból álló mezőny rajtrácssal, fordított rajtrácssal és időmérő körrel (`--pack`, `--inverted`, `--qualify`); 3–4 játékos osztott képernyőn gépi kitöltéssel (`--players`); elágazások (balra gyors, jobbra festői), ahol a helikopter mutatja az utat; üldözés a rendőrautóval; előzési lánc 200-tól 2000-ig; garázs, ahol az érmékkel fejlesztéseket vehetsz (`--garage`, `--buy`); zenei stílusok, mph, billentyűkiosztások és titkos fényezéskódok (`--music`, `--mph`, `--keys`, `--secret`); szirénák a rendőrautónak, a mentőnek és a tűzoltóautónak. Mindez a kezdőképernyő **EXTRAS** oldalán állítható (Backspace a járműválasztó képernyőn). Egy kódmező (⌨ a böngészőben) bajnokságot, szakaszt, szellemet, fényezés szót, DAILY-t vagy WEEKLY-t fogad.
+- **Különleges járművek a forgalomban** — Huszonkilenc különleges jármű osztozik az úton és az égen: kilenc repül (utasszállító, kétfedelű, hőlégballon, léghajó, drón, vadászgépek, siklóernyő, mentőhelikopter, UFO), plusz az üldöző rendőrautó és a városok és dugók feletti forgalmi helikopter. A szirénák, fények és hangok mindegyiknél mások; a légijárművek sosem ütköznek veled.
+- **Tizenkét válogatott szakasz** — Rögzített útvonalú szakaszok, időjárással és napszakkal: a --showcase kapcsolóval listázhatod, a --showcase N-nel vezetheted, vagy nyisd meg a webes változatot ?showcase=N címmel.
+
+## Hogyan áll a többiekhez képest, őszintén
+
+2026 novemberében összehasonlítottuk a TURBOCURSA játékot a megtalált nyílt forráskódú és kereskedelmi pszeudo-3D autóversenyekkel. A tények nyilvános oldalakról származnak; az értékelés a miénk, és mivel mi írtuk a kódot, ezzel a fenntartással olvasd.
+
+- Ahol nyer: MIT licenc és semmi más játékból származó erőforrás (a Cannonballhoz az eredeti ROM-ok kellenek, libretro magja nem kereskedelmi; a javascript-racer egy kis oktatóprogram), ugyanaz a kód asztali gépre és böngészőbe, 8 nyelv, nagyjából 2,5 MB-os bináris és nagyjából 200 automatikus teszt.
+- A módokban egyenrangú a kereskedelmi retró versenyjátékokkal: karrier, bajnokságok, országtúrák, napi és heti kihívások, ralli, osztott képernyő 3–4 játékosnak, szellemek, szakasztervező és tizenkét válogatott szakasz.
+- Ahol veszít: kép és grafika. Az alapkép 640×400-as, felnagyítva, a járművek egyszerű formák, messze a Slipstream csiszoltságától vagy a Horizon Chase 4K megjelenésétől.
+- Ahol veszít: bizonyítékok. Egyetlen szerző és az első kiadás 2026 novemberében, külső tesztelők nélkül, míg a kereskedelmi játékoknak több ezer játékosértékelésük és évek hangolása van mögöttük.
+- Ahol veszít: szakaszok és zene. A legtöbb szakaszt egy kezdőérték generálja, a kereskedelmi címek viszont tucatnyi kézzel tervezett pályát és komponált hangsávot hoznak; a miénk szintetizált, és soha nem hallottuk valódi hangszórón.
+- Nincs kapcsolata semmilyen kereskedelmi játékkal vagy márkával; kódot, erőforrást és védjegyet nem másoltunk.
+
+Az 1.20.0 verzió auditja ellenséges bemenetekkel futtatott teszteket minden szakaszon és járműosztályon, és két valódi hibát talált: egy 16×10 képpontnál kisebb nézet összeomlasztotta a megjelenítést, egy NaN szirénapozíció pedig tönkretehette a sztereó keveréket. Mindkettő javítva van, és teszt fedi.
+
+Közreműködés: lásd a CONTRIBUTING.md fájlt (clean-room szabályok; játéktesztek és régi Linuxon végzett próbák jelentését szívesen fogadjuk). A függőségek licencei: THIRD_PARTY_LICENSES.md.
 
 ## Korlátok
 
@@ -98,6 +115,7 @@ Minden országnak saját versenyautója van: nemzeti színekkel festett (közel�
 - A város, a dugó, a kerülő és a segélyjárművek szabályait csak szimulált vezetőkkel hangoltuk és teszteltük, valódi játékosokkal nem.
 - A megbízások, a gyakorlópálya és a parkolók egyensúlyát és a feloldási küszöböket csak szimulált pilótákkal hangoltam, valódi játékosokkal nem.
 - Az új eseményeket és extrákat csak szimulált sofőrökkel és automatikus ellenőrzésekkel teszteltem: a hangot (zenei stílusok, szirénák) nem hallgattam meg, semmit sem próbáltam valódi játékvezérlőn vagy telefonon, az egyensúlyt nem játszották valódi emberek, az online ranglisták pedig hiányoznak, mert szerver kell hozzájuk.
+- A tizenkét válogatott szakasz szándékosan különbözik, de a szerzőn kívül senki sem játszott velük. Az összehasonlítás 2026 novemberében olvasott nyilvános weboldalakra és saját teszteinkre épül: a kereskedelmi címekkel nem játszottunk.
 
 ## Licenc
 

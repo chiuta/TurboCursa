@@ -1163,8 +1163,13 @@ pub fn draw_portrait(fb: &mut [u32], w: usize, h: usize, which: u8, cx: f32, by:
 }
 
 pub fn render_view(g: &Game, fb: &mut [u32], vw_: usize, vh_: usize) {
-    DIM.with(|d| d.set((vw_, vh_)));
     assert_eq!(fb.len(), vw_ * vh_);
+    // a view this small cannot hold a road (the horizon maths below would clamp with min > max)
+    if vw_ < 16 || vh_ < 10 {
+        fb.fill(0);
+        return;
+    }
+    DIM.with(|d| d.set((vw_, vh_)));
     let env = env_of(g);
     let mut p = blend_pal(g.biome_w);
     env.sky(&mut p);

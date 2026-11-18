@@ -741,6 +741,7 @@ impl Synth {
             &mut clean.train,
             &mut clean.ice,
             &mut clean.engine,
+            &mut clean.emerg,
         ] {
             *v = if v.is_finite() {
                 v.clamp(0.0, 1.0)
@@ -748,6 +749,12 @@ impl Synth {
                 0.0
             };
         }
+        // a NaN pan would clamp to NaN and poison the whole stereo mix
+        clean.emerg_pan = if p.emerg_pan.is_finite() {
+            p.emerg_pan.clamp(-1.0, 1.0)
+        } else {
+            0.0
+        };
         let p = &clean;
         self.edges(p);
         let sr = self.sr;

@@ -29,3 +29,15 @@ fn stages_build_and_run() {
         assert!(g.track.segs.len() > 100, "stage {n} has a road");
     }
 }
+
+#[test]
+fn the_web_page_lists_the_same_twelve_codes() {
+    let page = std::fs::read_to_string("web/index.template.html").unwrap();
+    for (i, code) in turbocursa::showcase::codes().iter().enumerate() {
+        assert!(
+            page.contains(code.as_str()),
+            "web page lacks showcase {}",
+            i + 1
+        );
+    }
+}

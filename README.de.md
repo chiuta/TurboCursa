@@ -2,7 +2,7 @@
 
 # **TURBOCURSA**
 
-Version: 1.5 · Letzte Aktualisierung: 12. November 2026
+Version: 1.20.0 · Letzte Aktualisierung: 18. November 2026
 
 ## Was es ist
 
@@ -83,6 +83,23 @@ Jedes Land hat sein eigenes Rennauto: eine Lackierung in den Landesfarben (angen
 - **Aufträge, Testgelände, Parkplätze** — nimm ein Paket oder einen Fahrgast auf und setze ihn in der Bucht ab, bevor die Zeit abläuft; die Strecke hat ein Testgelände (Steigung, Slalomringe, Rampe) und Parkplätze, durch Schilderbrücken angekündigt, jeweils mit Bonus.
 - **Freischaltbare Dienstfahrzeuge** — Polizeiauto (10 saubere Städte), Krankenwagen (8 Lieferungen), Feuerwehrauto (3 Tagesrennen und 4 Testgelände- oder Parkbonus), Hubschrauber (die anderen drei plus 7 Tagesrennen). Sie dürfen Regeln brechen, der Verkehr weicht aus, und der Hubschrauber fliegt über den Verkehr und landet bei niedriger Geschwindigkeit.
 - **Ereignisse und Extras** — Meisterschaften mit 7, 10 oder 15 Etappen und die Acht-Etappen-Tour durch ein Land (`--champ`, `--tour`, Code `TCC1-…`); Wochenherausforderung mit wechselndem Modifikator (`--weekly`); Import und Export von Geistern (`--ghost`, `--ghost-export`); sichtbares Feld mit 8–16 Rivalen samt Startaufstellung, umgekehrter Aufstellung und Qualifikationsrunde (`--pack`, `--inverted`, `--qualify`); Splitscreen für 3–4 Spieler mit CPU-Auffüllung (`--players`); Weggabelungen (schnell links, landschaftlich rechts), bei denen der Hubschrauber den Weg zeigt; Verfolgungsjagd mit dem Polizeiwagen; Überholkette von 200 bis 2000; Garage, in der Münzen Upgrades kaufen (`--garage`, `--buy`); Musikstile, mph, Tastenbelegungen und geheime Lackcodes (`--music`, `--mph`, `--keys`, `--secret`); Sirenen für Polizeiwagen, Krankenwagen und Löschfahrzeug. Alles lässt sich auf der Seite **EXTRAS** des Startbildschirms einstellen (Rücktaste auf dem Fahrzeugbild). Ein Codefeld (⌨ im Browser) nimmt eine Meisterschaft, eine Etappe, einen Geist, ein Lackwort, DAILY oder WEEKLY an.
+- **Spezialfahrzeuge im Verkehr** — Neunundzwanzig Spezialfahrzeuge teilen sich Straße und Himmel: neun fliegen (Verkehrsflugzeug, Doppeldecker, Ballon, Luftschiff, Drohne, Kampfjets, Gleitschirm, Rettungshubschrauber, UFO), dazu das Polizeiauto, das dich verfolgt, und der Verkehrshubschrauber über Städten und Staus. Sirenen, Lichter und Klänge sind bei jedem anders; Flugobjekte kollidieren nie mit dir.
+- **Zwölf ausgewählte Etappen** — Etappen mit festem Verlauf, Wetter und Tageszeit: mit --showcase auflisten, mit --showcase N fahren oder die Web-Version mit ?showcase=N öffnen.
+
+## Wie es im Vergleich dasteht, ehrlich
+
+Wir haben TURBOCURSA im November 2026 mit den quelloffenen und kommerziellen Pseudo-3D-Rennspielen verglichen, die wir finden konnten. Die Fakten stammen von öffentlichen Seiten; die Urteile sind unsere, und da wir den Code geschrieben haben, lies sie mit diesem Vorbehalt.
+
+- Wo es gewinnt: MIT-Lizenz und keine Ressourcen aus einem anderen Spiel (Cannonball braucht die Original-ROMs und sein libretro-Kern ist nicht kommerziell; javascript-racer ist ein kleines Tutorial), derselbe Code für Desktop und Browser, 8 Sprachen, eine Binärdatei von etwa 2,5 MB und rund 200 automatische Tests.
+- Bei den Modi ist es mit den kommerziellen Retro-Rennspielen gleichauf: Karriere, Meisterschaften, Länder-Touren, tägliche und wöchentliche Herausforderungen, Rallye, Splitscreen für 3–4, Geister, ein Etappen-Designer und zwölf ausgewählte Etappen.
+- Wo es verliert: Bild und Grafik. Das Basisbild ist 640×400 hochskaliert und die Fahrzeuge sind einfache Formen, weit entfernt vom Schliff von Slipstream oder der 4K-Optik von Horizon Chase.
+- Wo es verliert: Belege. Ein einziger Autor und eine erste Version im November 2026, ohne externe Tester, während kommerzielle Spiele tausende Spielerbewertungen und jahrelange Abstimmung haben.
+- Wo es verliert: Etappen und Musik. Die meisten Etappen werden aus einem Seed erzeugt, während kommerzielle Titel Dutzende handgestaltete Strecken und komponierte Soundtracks mitbringen; unserer ist synthetisiert und wurde nie auf echten Lautsprechern gehört.
+- Keine Verbindung zu einem kommerziellen Spiel oder einer Marke; es wurden weder Code noch Ressourcen noch Marken kopiert.
+
+Das Audit für Version 1.20.0 ließ Tests mit feindlichen Eingaben über jede Etappe und Fahrzeugklasse laufen und fand zwei echte Fehler: Eine Ansicht kleiner als 16×10 Pixel brachte das Rendering zum Absturz, und eine NaN-Sirenenposition konnte den Stereo-Mix verderben. Beide sind behoben und durch Tests abgedeckt.
+
+Mitwirken: siehe CONTRIBUTING.md (Clean-Room-Regeln; Playtest- und Alt-Linux-Berichte willkommen). Lizenzen der Abhängigkeiten: THIRD_PARTY_LICENSES.md.
 
 ## Grenzen
 
@@ -98,6 +115,7 @@ Jedes Land hat sein eigenes Rennauto: eine Lackierung in den Landesfarben (angen
 - Die Regeln für Stadt, Stau, Umleitung und Einsatzfahrzeuge wurden nur mit simulierten Fahrern abgestimmt und getestet, nicht mit echten Spielern.
 - Balance von Aufträgen, Testgelände und Parkplätzen sowie die Freischalt-Schwellen wurden nur mit simulierten Fahrern abgestimmt, nicht mit echten Spielern.
 - Die neuen Ereignisse und Extras wurden nur mit simulierten Fahrern und automatischen Prüfungen getestet: der Ton (Musikstile, Sirenen) wurde nicht angehört, nichts wurde mit einem echten Gamepad oder Telefon ausprobiert, die Balance wurde nicht von echten Menschen gespielt, und Online-Bestenlisten fehlen, weil sie einen Server brauchen.
+- Die zwölf ausgewählten Etappen unterscheiden sich absichtlich, aber außer dem Autor hat sie niemand gespielt. Der Vergleich mit anderen Spielen beruht auf im November 2026 gelesenen öffentlichen Webseiten und auf unseren eigenen Tests: Die kommerziellen Titel haben wir nicht gespielt.
 
 ## Lizenz
 
