@@ -15,7 +15,7 @@
 - The comparison rests on public web pages read in November 2026 and on our own tests; no commercial game was played.
 - The older Linux binaries were still not run on real Ubuntu 20.04 or Debian 11 (no container runtime in the authoring sandbox).
 
-## Unreleased
+## 1.20.1
 
 ### Changed
 - The web game (`docs/turbocursa.html`) embedded the 1.10.2 engine; it now embeds the WebAssembly module of the 1.19.0 release (the web template has not changed since 1.10.2). The landing page said “version 1.7” and now says 1.19.0, and both pages and `docs/app.json` declare the version (`application-version`).
