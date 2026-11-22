@@ -2,7 +2,7 @@
 
 # **TURBOCURSA**
 
-Versione: 1.20.1 · Ultimo aggiornamento: 19 novembre 2026
+Versione: 1.20.1 · Ultimo aggiornamento: 2026-11-22
 
 ## Che cos'è
 
